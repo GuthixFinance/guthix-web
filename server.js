@@ -126,28 +126,81 @@ app.post('/api/jupiter/swap', async (req, res) => {
   }
   res.status(502).json(lastData || { error: 'All swap endpoints failed' });
 });
-// ── Meteora DAMM v1 — amm-v2.meteora.ag ──
-// Our pools are DAMM v1 "Dynamic Pool · Stable". Correct host: amm-v2.meteora.ag
-// Response fields: pool_tvl, trading_volume (24h), fee_volume (24h), weekly_trading_volume, weekly_fee_volume
-app.get('/api/meteora/pool/:address', async (req, res) => {
-  const addr = req.params.address;
-  const url = `https://amm-v2.meteora.ag/pools/${addr}`;
+// ── Pool TVL via Helius RPC ──
+// Each Meteora DAMM v1 pool owns exactly two SPL token accounts (the reserve vaults).
+// getTokenAccountsByOwner returns both, giving us live token balances = TVL for stablecoin pools.
+const HELIUS_RPC = 'https://mainnet.helius-rpc.com/?api-key=6df6c556-796b-48f1-a24a-21ffe0995f66';
+
+app.post('/api/rpc/pool-tvl', async (req, res) => {
+  const { pools } = req.body; // array of pool addresses
+  if (!Array.isArray(pools) || !pools.length) return res.status(400).json({ error: 'pools array required' });
+
+  const results = {};
+  await Promise.all(pools.map(async (poolAddr) => {
+    try {
+      const body = JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'getTokenAccountsByOwner',
+        params: [
+          poolAddr,
+          { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+          { encoding: 'jsonParsed' }
+        ]
+      });
+      const { status, body: rb } = await httpRequest(HELIUS_RPC, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        body,
+      });
+      const data = JSON.parse(rb);
+      const accounts = data?.result?.value ?? [];
+      console.log(`[rpc] pool-tvl ${poolAddr.slice(0,8)}… found ${accounts.length} token accounts`);
+
+      const vaults = accounts.map(a => ({
+        pubkey: a.pubkey,
+        mint:   a.account.data.parsed.info.mint,
+        amount: parseFloat(a.account.data.parsed.info.tokenAmount.uiAmount ?? 0),
+      }));
+
+      const tvl = vaults.reduce((s, v) => s + v.amount, 0); // stablecoin pools: amount ≈ USD
+      results[poolAddr] = { vaults, tvl };
+    } catch (err) {
+      console.error(`[rpc] pool-tvl error for ${poolAddr}:`, err.message);
+      results[poolAddr] = { vaults: [], tvl: null, error: err.message };
+    }
+  }));
+
+  res.json(results);
+});
+
+
+// ── Single token account balance — for Manifest vault ──
+// GET /api/rpc/token-balance — returns uiAmount for a known SPL token account address
+app.post('/api/rpc/token-balance', async (req, res) => {
+  const { account } = req.body;
+  if (!account) return res.status(400).json({ error: 'account required' });
   try {
-    console.log('[proxy] Meteora DAMM v1 -->', url);
-    const { status, body } = await httpRequest(url, { headers: { Accept: 'application/json' } });
-    console.log('[proxy] Meteora DAMM v1 <--', status, body.slice(0, 200));
-    if (!body || body.trim() === '') return res.status(502).json({ error: 'Empty response' });
-    let data;
-    try { data = JSON.parse(body); } catch (_) { return res.status(502).json({ error: 'Bad JSON' }); }
-    if (status === 200 && data && !data.error) return res.status(200).json(data);
-    res.status(status).json(data || { error: 'Meteora error' });
+    const body = JSON.stringify({
+      jsonrpc: '2.0', id: 1,
+      method: 'getTokenAccountBalance',
+      params: [account, { commitment: 'confirmed' }]
+    });
+    const { status, body: rb } = await httpRequest(HELIUS_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      body,
+    });
+    const data = JSON.parse(rb);
+    const amount = data?.result?.value?.uiAmount ?? null;
+    console.log(`[rpc] token-balance ${account.slice(0,8)}… = ${amount}`);
+    res.json({ account, amount });
   } catch (err) {
-    console.error('[proxy] Meteora DAMM v1 error', err.message);
+    console.error('[rpc] token-balance error:', err.message);
     res.status(502).json({ error: err.message });
   }
 });
 
-// ── DexScreener — token-pairs (used by fetchDexScreener) ──
+
 app.get('/api/dexscreener/token-pairs/v1/solana/:mint', (req, res) => {
   proxy(
     `https://api.dexscreener.com/token-pairs/v1/solana/${req.params.mint}`,
