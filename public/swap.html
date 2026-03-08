@@ -232,6 +232,8 @@
     .pool-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; transition: border-color 0.15s; }
     .pool-card:hover { border-color: var(--border2); }
     .pool-card-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .pool-card-name a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border2); transition: color 0.15s, border-color 0.15s; }
+    .pool-card-name a:hover { color: var(--accent); border-color: var(--accent); }
     .pool-card-tier { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
     .pool-stat { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
     .pool-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
@@ -621,37 +623,37 @@
             <div class="panel-body">
               <div class="pools-grid">
                 <div class="pool-card">
-                  <div class="pool-card-name">sgxUSD / USDT</div>
+                  <div class="pool-card-name"><a href="https://app.meteora.ag/pools/6c2DTHtCtS4YJ3cJYJNvj7qY9QQ8bqoUjGBZEgf9m889" target="_blank" rel="noopener">sgxUSD / USDT ↗</a></div>
                   <div class="pool-card-tier">Entry · Exit Ramp · Meteora</div>
                   <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.05%</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlUsdt">—</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolUsdt">—</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlUsdt">Unavailable</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolUsdt">Unavailable</span></div>
                   <div class="pool-badge" style="background:rgba(79,255,164,0.08);color:var(--accent);border:1px solid rgba(79,255,164,0.2)">Primary AMM</div>
                 </div>
                 <div class="pool-card" style="position:relative;border-color:rgba(79,255,164,0.2)">
                   <div style="position:absolute;top:12px;right:12px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);background:rgba(79,255,164,0.08);border:1px solid rgba(79,255,164,0.2);border-radius:4px;padding:2px 7px">0% Fee</div>
-                  <div class="pool-card-name">sgxUSD / USDC</div>
+                  <div class="pool-card-name"><a href="https://manifest.trade/market/Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo" target="_blank" rel="noopener">sgxUSD / USDC ↗</a></div>
                   <div class="pool-card-tier">Primary Mint · Manifest CLOB</div>
                   <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value" style="color:var(--accent)">0.00% — Free</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlManifest">—</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolManifest">—</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlManifest">Unavailable</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolManifest">Unavailable</span></div>
                   <div class="pool-badge" style="background:rgba(0,212,255,0.06);color:var(--accent2);border:1px solid rgba(0,212,255,0.2)">Limit Orders</div>
                   <div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:var(--text3);line-height:1.5" id="manifestStatus">Loading…</div>
                 </div>
                 <div class="pool-card">
-                  <div class="pool-card-name">sgxUSD / sUSDe</div>
+                  <div class="pool-card-name"><a href="https://app.meteora.ag/pools/6FGtEcUT3UcJeU993oNKBYuYg1Uj9NeXNDzcpsobhxwy" target="_blank" rel="noopener">sgxUSD / sUSDe ↗</a></div>
                   <div class="pool-card-tier">Yield Engine · Meteora</div>
                   <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.10%</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlSusde">—</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolSusde">—</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlSusde">Unavailable</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolSusde">Unavailable</span></div>
                   <div class="pool-badge" style="background:rgba(0,212,255,0.06);color:var(--accent2);border:1px solid rgba(0,212,255,0.2)">Ethena</div>
                 </div>
                 <div class="pool-card">
-                  <div class="pool-card-name">sgxUSD / syrupUSDC</div>
+                  <div class="pool-card-name"><a href="https://app.meteora.ag/pools/3SjZNbuyzL5tow1LXf7mHYutnWdpboq97Z1RSfwpoVcT" target="_blank" rel="noopener">sgxUSD / syrupUSDC ↗</a></div>
                   <div class="pool-card-tier">Yield Engine · Meteora</div>
                   <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.10%</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlSyrup">—</span></div>
-                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolSyrup">—</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="poolTvlSyrup">Unavailable</span></div>
+                  <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="poolVolSyrup">Unavailable</span></div>
                   <div class="pool-badge" style="background:rgba(155,127,255,0.08);color:var(--purple);border:1px solid rgba(155,127,255,0.2)">Maple</div>
                 </div>
               </div>
@@ -690,6 +692,7 @@
       METEORA_POOL_SUSDE:     '6FGtEcUT3UcJeU993oNKBYuYg1Uj9NeXNDzcpsobhxwy',
       METEORA_POOL_SYRUPUSDC: '3SjZNbuyzL5tow1LXf7mHYutnWdpboq97Z1RSfwpoVcT',
       MANIFEST_MARKET:        'Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo',
+      MANIFEST_VAULT:         'ALGCuBDd7SLJsJyA8k9NPhjfduBMnAgZoYMUUjuR2x7v', // sgxUSD token account held by Manifest market
       MANIFEST_URL:           'https://manifest.trade/market/Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo',
       METEORA_API:     '/api/meteora',      // DLMM datapi proxy — GET /api/meteora/pool/{address}
       DSX_API:         '/api/dexscreener',
@@ -757,7 +760,7 @@
       const s=state.navStale?'~':'';
       if (navEl)   navEl.textContent  = `${s}$${state.navPrice.toFixed(4)}`;
       if (npcNav)  npcNav.textContent = `${s}$${state.navPrice.toFixed(4)}`;
-      if (npcRate) npcRate.textContent = `${s}${state.navRate.toFixed(4)} sgx`;
+      if (npcRate) npcRate.textContent = `${s}${state.navRate.toFixed(4)} USD`;
       const tok=TOKENS[state.depositToken];
       if (state.tab==='withdraw') { if (rateEl) rateEl.textContent=`1 sgxUSD = ${s}$${state.navPrice.toFixed(4)}`; return; }
       if (state.liveQuoteRate!=null) { if (rateEl) rateEl.textContent=`1 ${tok.symbol} ≈ ${state.liveQuoteRate.toFixed(4)} sgxUSD`; }
@@ -765,64 +768,105 @@
       else                           { if (rateEl) rateEl.textContent=`Enter amount for ${tok.symbol} rate`; }
     }
 
-    // ── POOL APR (Meteora DAMM v1 — amm-v2.meteora.ag) ──
-    // Response fields: pool_tvl (string), trading_volume (24h number), fee_volume (24h number),
-    // weekly_trading_volume, weekly_fee_volume — no native APR field, must derive.
-    // APR = (fee_volume * 365 / pool_tvl) * 100
-    async function fetchPoolAPR() {
-      setDot('aprDot','loading');
+    // ── POOL TVL — Helius RPC (getTokenAccountsByOwner) ──
+    // Each DAMM v1 pool owns exactly two SPL token accounts (reserve vaults).
+    // Sum of both balances = TVL. Works immediately without DexScreener indexing.
+    // All three pools are stablecoin pairs so token amount ≈ USD value.
+    // Manifest CLOB TVL: fetched directly from its known vault account (ALGCuBDd7SLJsJyA8k9NPhjfduBMnAgZoYMUUjuR2x7v).
+    const POOL_FEES = {
+      [CONFIG.METEORA_POOL_USDT]:      0.0005,
+      [CONFIG.METEORA_POOL_SUSDE]:     0.0010,
+      [CONFIG.METEORA_POOL_SYRUPUSDC]: 0.0010,
+    };
+
+    async function fetchPoolTVL() {
+      setDot('aprDot', 'loading');
       try {
-        const addrs = [CONFIG.METEORA_POOL_USDT, CONFIG.METEORA_POOL_SUSDE, CONFIG.METEORA_POOL_SYRUPUSDC];
-        const results = await Promise.allSettled(
-          addrs.map(a =>
-            fetch(`/api/meteora/pool/${a}`, { headers: { Accept: 'application/json' } })
-              .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
-          )
-        );
-        const [usdt, susde, syrup] = results.map(r => r.status === 'fulfilled' ? r.value : null);
-        const pools = [usdt, susde, syrup].filter(Boolean);
-        if (!pools.length) throw new Error('All Meteora pools failed');
+        // Fetch Meteora pools (getTokenAccountsByOwner) + Manifest vault (getAccountInfo) in parallel
+        const [meteoraRes, manifestRes] = await Promise.all([
+          fetch('/api/rpc/pool-tvl', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pools: Object.keys(POOL_FEES) }),
+          }).then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)),
+          fetch('/api/rpc/token-balance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ account: CONFIG.MANIFEST_VAULT }),
+          }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
 
-        // DAMM v1 field names from amm-v2.meteora.ag/pools/{address}
-        const getTvl  = d => parseFloat(d?.pool_tvl ?? d?.tvl ?? 0);
-        const getVol  = d => parseFloat(d?.trading_volume ?? d?.trade_volume_24h ?? d?.volume_24h ?? 0);
-        const getFee  = d => parseFloat(d?.fee_volume    ?? d?.fees_24h          ?? d?.fee_24h   ?? 0);
+        state.poolData = state.poolData || {};
+        let totTvl = 0;
 
-        let totTvl = 0, totVol = 0, totFee = 0;
-        for (const p of pools) {
-          totTvl += getTvl(p);
-          totVol += getVol(p);
-          totFee += getFee(p);
+        // Meteora pools
+        for (const [addr, fee] of Object.entries(POOL_FEES)) {
+          const d = meteoraRes[addr];
+          if (!d || d.tvl == null) continue;
+          const existingVol = state.poolData[addr]?.vol ?? 0;
+          state.poolData[addr] = { tvl: d.tvl, vol: existingVol, vaults: d.vaults };
+          totTvl += d.tvl;
+          console.log(`[GUTHIX] TVL ${addr.slice(0,8)}… = $${d.tvl.toFixed(2)} (${d.vaults.length} vaults)`);
         }
 
-        // Annualised fee APR derived from 24h fee volume
-        state.aprPct = totTvl > 0 ? (totFee * 365 / totTvl) * 100 : null;
-        state.aprFee24h    = totFee;
-        state.aprTvl       = totTvl;
-        state.aprVol24h    = totVol;
-        state.aprStale     = false;
+        // Manifest vault — direct token account balance
+        if (manifestRes?.amount != null) {
+          const manifestTvl = parseFloat(manifestRes.amount);
+          const existingVol = state.poolData[CONFIG.MANIFEST_MARKET]?.vol ?? 0;
+          state.poolData[CONFIG.MANIFEST_MARKET] = { tvl: manifestTvl, vol: existingVol, dex: 'Manifest CLOB', fee: 0 };
+          totTvl += manifestTvl;
+          console.log(`[GUTHIX] Manifest vault TVL = $${manifestTvl.toFixed(2)}`);
+        }
+
+        state.aprTvl = totTvl;
         state.aprLastUpdated = Date.now();
+        state.aprStale = false;
 
-        // Per-pool card stats
-        const fmt = v => v > 0 ? fmtUsd(v) : '—';
-        if (usdt) { set('poolTvlUsdt', fmt(getTvl(usdt))); set('poolVolUsdt', fmt(getVol(usdt))); }
-        if (susde){ set('poolTvlSusde',fmt(getTvl(susde)));set('poolVolSusde',fmt(getVol(susde)));}
-        if (syrup){ set('poolTvlSyrup',fmt(getTvl(syrup)));set('poolVolSyrup',fmt(getVol(syrup)));}
-
-        setDot('aprDot', 'live');
-      } catch(err) {
-        console.warn('[GUTHIX] APR failed:', err.message);
+        // Re-derive APR if we have vol from DexScreener
+        const totFee = Object.entries(POOL_FEES).reduce((s, [addr, fee]) => {
+          return s + ((state.poolData[addr]?.vol ?? 0) * fee);
+        }, 0);
+        if (totTvl > 0 && totFee > 0) {
+          state.aprPct = (totFee * 365 / totTvl) * 100;
+          state.aprFee24h = totFee;
+          setDot('aprDot', 'live');
+        } else {
+          setDot('aprDot', totTvl > 0 ? 'live' : 'error');
+        }
+      } catch (err) {
+        console.warn('[GUTHIX] Pool TVL failed:', err.message);
         state.aprStale = true;
-        setDot('aprDot', state.aprPct == null ? 'error' : 'stale');
+        setDot('aprDot', 'stale');
+      }
+      renderPoolCards(); renderVaultStats(); renderStatusBar();
+    }
+
+    // ── POOL APR (re-derive from existing state — called on interval) ──
+    async function fetchPoolAPR() {
+      // TVL comes from fetchPoolTVL (RPC). Vol comes from fetchDexScreener.
+      // This just re-derives APR from whatever is in state.
+      let totTvl = 0, totFee = 0;
+      for (const [addr, fee] of Object.entries(POOL_FEES)) {
+        const d = state.poolData?.[addr]; if (!d) continue;
+        totTvl += d.tvl ?? 0;
+        totFee += (d.vol ?? 0) * fee;
+      }
+      if (totTvl > 0) {
+        state.aprTvl = totTvl;
+        if (totFee > 0) { state.aprPct = (totFee * 365 / totTvl) * 100; state.aprFee24h = totFee; }
+        state.aprLastUpdated = Date.now();
+        state.aprStale = false;
+        setDot('aprDot', 'live');
       }
       renderVaultStats(); renderStatusBar();
     }
+
 
     // ── DEXSCREENER ──
     async function fetchDexScreener() {
       setDot('dsxDot','loading'); setDot('dsxDot2','loading');
       try {
-        // Token-pairs for Meteora AMM pools (aggregated)
+        // Primary: token-pairs endpoint returns all pools for sgxUSD mint at once
         const res=await fetch(`${CONFIG.DSX_API}/token-pairs/v1/solana/${CONFIG.SGXUSD_MINT}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data=await res.json();
@@ -832,14 +876,34 @@
         const byAddr={};
         pairs.forEach(p=>{ if(p.pairAddress) byAddr[p.pairAddress.toLowerCase()]=p; });
 
-        const FEES={ [CONFIG.METEORA_POOL_USDT]:0.0005, [CONFIG.METEORA_POOL_SUSDE]:0.0010, [CONFIG.METEORA_POOL_SYRUPUSDC]:0.0010 };
-        state.poolData={};
-        let totTvl=0,totVol=0,totFee=0;
-        Object.entries(FEES).forEach(([addr,rate])=>{
-          const p=byAddr[addr.toLowerCase()]; if (!p) return;
-          const tvl=parseFloat(p.liquidity?.usd??0), vol=parseFloat(p.volume?.h24??0);
-          state.poolData[addr]={tvl,vol};
-          totTvl+=tvl; totVol+=vol; totFee+=vol*rate;
+        const POOLS = {
+          [CONFIG.METEORA_POOL_USDT]:      { fee: 0.0005 },
+          [CONFIG.METEORA_POOL_SUSDE]:     { fee: 0.0010 },
+          [CONFIG.METEORA_POOL_SYRUPUSDC]: { fee: 0.0010 },
+        };
+        state.poolData = state.poolData || {};
+        let totTvl=0, totVol=0, totFee=0;
+
+        // For any pool NOT in the token-pairs response, fetch it directly as fallback
+        const directFetches = Object.keys(POOLS)
+          .filter(addr => !byAddr[addr.toLowerCase()])
+          .map(addr =>
+            fetch(`${CONFIG.DSX_API}/pairs/solana/${addr}`)
+              .then(r => r.ok ? r.json() : null)
+              .then(d => {
+                const p = d?.pair ?? d?.pairs?.[0];
+                if (p?.pairAddress) byAddr[p.pairAddress.toLowerCase()] = p;
+              })
+              .catch(() => {})
+          );
+        if (directFetches.length) await Promise.all(directFetches);
+
+        Object.entries(POOLS).forEach(([addr, {fee}]) => {
+          const p = byAddr[addr.toLowerCase()]; if (!p) return;
+          const tvl = parseFloat(p.liquidity?.usd ?? 0);
+          const vol = parseFloat(p.volume?.h24 ?? 0);
+          state.poolData[addr] = { tvl, vol };
+          totTvl += tvl; totVol += vol; totFee += vol * fee;
         });
 
         const best=pairs.reduce((a,b)=>(parseFloat(b.liquidity?.usd??0)>parseFloat(a.liquidity?.usd??0))?b:a);
@@ -847,12 +911,13 @@
         if (state.navPrice==null&&best.priceUsd) { state.navPrice=parseFloat(best.priceUsd); state.navRate=state.navPrice>0?1/state.navPrice:null; }
         setDot('dsxDot','live'); setDot('dsxDot2','live');
 
-        // Also fetch Manifest CLOB market via pairs endpoint (may or may not be indexed)
+        // Also fetch Manifest CLOB market (may not be indexed yet)
         fetchManifestMarketData(totTvl, totVol, totFee);
 
-        if (state.aprPct==null&&totTvl>0) {
+        if (state.aprPct==null && totTvl>0) {
           state.aprPct=(totFee*365/totTvl)*100; state.aprTvl=totTvl; state.aprVol24h=totVol; state.aprFee24h=totFee;
         }
+        console.log('[GUTHIX] DSX pools found:', Object.keys(state.poolData).length, '| TVL:', totTvl, '| Vol24h:', totVol);
       } catch(err) {
         console.warn('[GUTHIX] DSX failed:',err.message); state.dsxStale=true;
         const s=state.dsx==null?'error':'stale'; setDot('dsxDot',s); setDot('dsxDot2',s);
@@ -920,18 +985,20 @@
     }
 
     function renderPoolCards() {
+      const na = (el) => { if (el) { el.textContent = 'Unavailable'; el.style.color = 'var(--text3)'; } };
+      const ok = (el, v) => { if (el) { el.textContent = v; el.style.color = ''; } };
       [{addr:CONFIG.METEORA_POOL_USDT,t:'poolTvlUsdt',v:'poolVolUsdt'},{addr:CONFIG.METEORA_POOL_SUSDE,t:'poolTvlSusde',v:'poolVolSusde'},{addr:CONFIG.METEORA_POOL_SYRUPUSDC,t:'poolTvlSyrup',v:'poolVolSyrup'}].forEach(({addr,t,v})=>{
         const d=state.poolData[addr];
         const te=document.getElementById(t), ve=document.getElementById(v);
-        if (te) te.textContent=d?fmtUsd(d.tvl):'—';
-        if (ve) ve.textContent=d?fmtUsd(d.vol):'—';
+        d?.tvl > 0 ? ok(te, fmtUsd(d.tvl)) : na(te);
+        d?.vol >= 0 ? ok(ve, fmtUsd(d.vol)) : na(ve);
       });
       // Manifest card
       const md=state.poolData[CONFIG.MANIFEST_MARKET];
       const mTvl=document.getElementById('poolTvlManifest'), mVol=document.getElementById('poolVolManifest');
       const mStatus=document.getElementById('manifestStatus');
-      if (mTvl) mTvl.textContent=md?.tvl!=null?fmtUsd(md.tvl):'—';
-      if (mVol) mVol.textContent=md?.vol!=null?fmtUsd(md.vol):'—';
+      md?.tvl != null ? ok(mTvl, fmtUsd(md.tvl)) : na(mTvl);
+      md?.vol != null ? ok(mVol, fmtUsd(md.vol)) : na(mVol);
       if (mStatus) {
         if (!md) { mStatus.textContent='Loading…'; mStatus.style.color='var(--text3)'; }
         else if (md.tvl==null) { mStatus.textContent='Not yet indexed'; mStatus.style.color='var(--text3)'; }
@@ -1156,6 +1223,8 @@
         swapCol.style.borderRight = 'none';
         swapCol.style.maxWidth   = '520px';
         swapCol.style.margin     = '0 auto';
+        swapCol.style.overflowY  = 'visible';
+        swapCol.style.maxHeight  = 'none';
         if (statusBar) statusBar.style.display = 'none';
       } else {
         appContent.style.gridTemplateColumns = '440px 1fr';
@@ -1163,6 +1232,8 @@
         swapCol.style.borderRight = '';
         swapCol.style.maxWidth   = '';
         swapCol.style.margin     = '';
+        swapCol.style.overflowY  = '';
+        swapCol.style.maxHeight  = '';
         if (statusBar) statusBar.style.display = '';
       }
     }
@@ -1202,9 +1273,10 @@
 
     // ── BOOT ──
     function startPolling() {
-      fetchNavRate(); fetchPoolAPR(); fetchDexScreener(); fetchTokenSupply();
+      fetchNavRate(); fetchPoolTVL(); fetchDexScreener(); fetchTokenSupply();
       setInterval(fetchNavRate,    CONFIG.NAV_REFRESH_MS);
       setInterval(fetchPoolAPR,    CONFIG.APR_REFRESH_MS);
+      setInterval(fetchPoolTVL,    120_000); // TVL from RPC every 2 min
       setInterval(fetchDexScreener,CONFIG.DSX_REFRESH_MS);
       setInterval(fetchTokenSupply, 120_000); // every 2 min — supply changes slowly
       document.addEventListener('visibilitychange',()=>{
