@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUTHIX — Yield-Bearing Liquidity Hub on Solana</title>
+  <meta name="description" content="sgxUSD generates passive yield from five uncorrelated sources on Solana. Swap in, hold, appreciate." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080B12;
+      --bg2: #0D1220;
+      --bg3: #111826;
+      --surface: #151D2E;
+      --surface2: #1A2338;
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.10);
+      --text: #E8EDF5;
+      --text2: #8A97B0;
+      --text3: #4A566E;
+      --accent: #4FFFA4;
+      --accent2: #00D4FF;
+      --accent3: #7B61FF;
+      --gold: #F0B240;
+      --warn: #FF6B35;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── GRID LINES ── */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,255,164,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,255,164,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── GLOW ORBS ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 20s ease-in-out infinite;
+    }
+    .orb-1 { width: 600px; height: 600px; background: rgba(79,255,164,0.06); top: -200px; right: -100px; animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; background: rgba(0,212,255,0.05); bottom: 20%; left: -150px; animation-delay: -7s; }
+    .orb-3 { width: 400px; height: 400px; background: rgba(123,97,255,0.05); top: 50%; right: 20%; animation-delay: -14s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      background: rgba(8,11,18,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-mark {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--bg);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--text2);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 8px 20px;
+      border-radius: 4px;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .nav-cta:hover { background: #6FFFB8; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 0 80px;
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 5vw, 64px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--text2); }
+    .hero-body {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--text2);
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+    .hero-body strong { color: var(--text); font-weight: 500; }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 14px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { background: #6FFFB8; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(79,255,164,0.3); }
+    .btn-secondary {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text2);
+      background: transparent;
+      border: 1px solid var(--border2);
+      padding: 14px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      background: rgba(240,178,64,0.08);
+      border: 1px solid rgba(240,178,64,0.2);
+      padding: 6px 14px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── HERO CARD ── */
+    .hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    .card-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .card-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+    }
+    .card-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+    .yield-sources {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .yield-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .yield-name {
+      font-size: 13px;
+      color: var(--text2);
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .yield-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+    .yield-pct {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .yield-bar-wrap {
+      width: 80px;
+      height: 2px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 0 12px;
+    }
+    .yield-bar {
+      height: 100%;
+      border-radius: 2px;
+      animation: barGrow 1.5s ease-out forwards;
+      transform-origin: left;
+    }
+    @keyframes barGrow {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+    .card-footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-footer-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .card-footer-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent2);
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 100px 0; }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3.5vw, 42px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .section-body {
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text2);
+      font-weight: 300;
+      max-width: 600px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 60px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .step {
+      background: var(--bg2);
+      padding: 36px 32px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .step:hover { background: var(--surface); }
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .step-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .step-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text2);
+      font-weight: 300;
+    }
+
+    /* ── YIELD SOURCES ── */
+    .sources-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 60px;
+    }
+    /* Last card spans to center when 5 items in 3-col grid */
+    .sources-grid .source-card:last-child {
+      grid-column: 2 / 3;
+    }
+    .source-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .source-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .source-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .source-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .source-icon {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .source-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid;
+    }
+    .source-name {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .source-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text2);
+      font-weight: 300;
+    }
+    .source-partner {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .source-partner span { color: var(--text2); }
+
+    /* ── ARCHITECTURE ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 60px;
+    }
+    .arch-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .arch-icon {
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .arch-name {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .arch-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text2);
+      font-weight: 300;
+    }
+    .arch-tag {
+      display: inline-block;
+      margin-top: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.15);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── POOLS TABLE ── */
+    .pools-table {
+      margin-top: 60px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .pools-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 0;
+      padding: 16px 28px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .pools-header-cell {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .pool-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      align-items: center;
+    }
+    .pool-row:last-child { border-bottom: none; }
+    .pool-row:hover { background: var(--bg3); }
+    .pool-name {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .pool-tier {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .pool-fee {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .pool-type-badge {
+      display: inline-flex;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── RISK SECTION ── */
+    .risk-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 0;
+    }
+    .risk-banner {
+      background: rgba(255,107,53,0.06);
+      border: 1px solid rgba(255,107,53,0.2);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 40px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .risk-icon { font-size: 28px; flex-shrink: 0; }
+    .risk-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--warn);
+      margin-bottom: 10px;
+    }
+    .risk-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text2);
+      font-weight: 300;
+    }
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .risk-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .risk-item-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--warn);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .risk-item-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text2);
+      font-weight: 300;
+    }
+
+    /* ── DISCLAIMER ── */
+    .disclaimer-section {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+    }
+    .disclaimer-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+    }
+    .disclaimer-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+    .disclaimer-text {
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text3);
+      font-weight: 300;
+    }
+    .disclaimer-text strong { color: var(--text2); font-weight: 500; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--text2);
+    }
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── COMING SOON BADGE ── */
+    .coming-soon {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.2);
+      padding: 10px 20px;
+      border-radius: 4px;
+    }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border2), transparent);
+      margin: 0;
+    }
+
+    /* ── FEATURE ROW ── */
+    .feature-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 60px;
+      flex-wrap: wrap;
+    }
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 13px;
+      color: var(--text2);
+      font-weight: 300;
+    }
+    .feature-pill-icon { font-size: 16px; }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .steps { grid-template-columns: 1fr; }
+      .sources-grid { grid-template-columns: 1fr; }
+      .arch-grid { grid-template-columns: repeat(2, 1fr); }
+      .risk-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .pools-header, .pool-row { grid-template-columns: 2fr 1fr 1fr; }
+      .pool-type-col { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- ── NAV ── -->
+  <nav>
+    <div class="container">
+      <div class="nav-inner">
+        <a href="/" class="logo">
+          <div class="logo-mark">G</div>
+          GUTHIX
+        </a>
+        <ul class="nav-links">
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#yield">Yield Sources</a></li>
+          <li><a href="#risks">Risks</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+        </ul>
+        <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener" class="nav-cta">GitHub →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+
+        <div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            In Development — Devnet Q2 2026
+          </div>
+          <div class="hero-eyebrow">Solana · sgxUSD · Vault Token</div>
+          <h1 class="hero-title">
+            Five yield sources.<br/>
+            <span class="accent">One token.</span><br/>
+            <span class="dim">Built on DeFi.</span>
+          </h1>
+          <p class="hero-body">
+            GUTHIX is a minimalist, non-custodial liquidity protocol on Solana.
+            <strong>sgxUSD</strong> is a vault token whose NAV appreciates passively
+            as protocol revenue accrues — drawing from funding rates, credit yield,
+            RWA yield, and bridge arbitrage fees simultaneously.
+            No claiming. No staking. No redemption queues.
+          </p>
+          <div class="hero-actions">
+            <a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener" class="btn-primary">
+              Read the Litepaper →
+            </a>
+            <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener" class="btn-secondary">
+              View on GitHub
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="hero-card">
+            <div class="card-label">sgxUSD — Vault Token</div>
+            <div class="card-value">$1.000</div>
+            <div class="card-sub">↑ NAV appreciates over time</div>
+            <div class="card-divider"></div>
+            <div class="card-label" style="margin-bottom: 16px;">Yield Sources</div>
+            <div class="yield-sources">
+              <div class="yield-row">
+                <div class="yield-name"><span class="yield-dot" style="background:#4FFFA4"></span>Funding Rates</div>
+                <div class="yield-bar-wrap"><div class="yield-bar" style="width:85%;background:linear-gradient(90deg,#4FFFA4,#00D4FF);animation-delay:0.1s"></div></div>
+                <div class="yield-pct">Perpetual</div>
+              </div>
+              <div class="yield-row">
+                <div class="yield-name"><span class="yield-dot" style="background:#00D4FF"></span>Credit Yield</div>
+                <div class="yield-bar-wrap"><div class="yield-bar" style="width:70%;background:linear-gradient(90deg,#00D4FF,#7B61FF);animation-delay:0.2s"></div></div>
+                <div class="yield-pct">Institutional</div>
+              </div>
+              <div class="yield-row">
+                <div class="yield-name"><span class="yield-dot" style="background:#7B61FF"></span>RWA Yield</div>
+                <div class="yield-bar-wrap"><div class="yield-bar" style="width:50%;background:linear-gradient(90deg,#7B61FF,#F0B240);animation-delay:0.3s"></div></div>
+                <div class="yield-pct">Treasuries</div>
+              </div>
+              <div class="yield-row">
+                <div class="yield-name"><span class="yield-dot" style="background:#F0B240"></span>Bridge Arb Fees</div>
+                <div class="yield-bar-wrap"><div class="yield-bar" style="width:60%;background:linear-gradient(90deg,#F0B240,#FF6B35);animation-delay:0.4s"></div></div>
+                <div class="yield-pct">Cross-chain</div>
+              </div>
+              <div class="yield-row">
+                <div class="yield-name"><span class="yield-dot" style="background:#FF6B35"></span>Swap Fees</div>
+                <div class="yield-bar-wrap"><div class="yield-bar" style="width:40%;background:linear-gradient(90deg,#FF6B35,#4FFFA4);animation-delay:0.5s"></div></div>
+                <div class="yield-pct">All pools</div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="card-footer-label">Network</div>
+                <div class="card-footer-value">Solana + Base</div>
+              </div>
+              <div style="text-align:right">
+                <div class="card-footer-label">Pools</div>
+                <div class="card-footer-value">Protocol-owned liquidity</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">Three steps.<br/>No management required.</h2>
+      <p class="section-body">
+        sgxUSD is not a stablecoin. It is a token that appreciates passively
+        as fees and yield accrue across the protocol's liquidity pools.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">Step 01</div>
+          <div class="step-icon" style="background:rgba(79,255,164,0.08)">🔄</div>
+          <div class="step-title">Swap In</div>
+          <div class="step-body">
+            Swap USDC or USDT for sgxUSD via Jupiter or the GUTHIX interface.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">Step 02</div>
+          <div class="step-icon" style="background:rgba(0,212,255,0.08)">⏳</div>
+          <div class="step-title">Hold</div>
+          <div class="step-body">
+            As fees and yield accrue across the pools, the value of each sgxUSD increases.
+            No claiming. No staking. No active management.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">Step 03</div>
+          <div class="step-icon" style="background:rgba(123,97,255,0.08)">💱</div>
+          <div class="step-title">Swap Out</div>
+          <div class="step-body">
+            Exit anytime by swapping sgxUSD back to USDC or USDT on Jupiter.
+            No redemption queue.
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-pill"><span class="feature-pill-icon">🔒</span> Non-custodial</div>
+        <div class="feature-pill"><span class="feature-pill-icon">⚡</span> Solana-native</div>
+        <div class="feature-pill"><span class="feature-pill-icon">🌐</span> Bridges to Base</div>
+        <div class="feature-pill"><span class="feature-pill-icon">🚫</span> Zero emissions</div>
+        <div class="feature-pill"><span class="feature-pill-icon">📊</span> On-chain NAV</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ── YIELD SOURCES ── -->
+  <section id="yield" style="background:var(--bg2)">
+    <div class="container">
+      <div class="section-label">Yield Sources</div>
+      <h2 class="section-title">Five uncorrelated sources.<br/>One token.</h2>
+      <p class="section-body">
+        When one yield source compresses, the others carry the basket.
+        Structural diversification — not cosmetic.
+      </p>
+
+      <div class="sources-grid">
+        <div class="source-card">
+          <div class="source-header">
+            <div class="source-icon" style="background:rgba(79,255,164,0.08); font-size:22px">📈</div>
+            <div class="source-badge" style="color:var(--accent);border-color:rgba(79,255,164,0.3);background:rgba(79,255,164,0.06)">Funding Rates</div>
+          </div>
+          <div class="source-name">Perpetual Funding Rates</div>
+          <div class="source-desc">
+            Delta-neutral positions across major venues capture perpetual funding rates.
+            Highest yield in volatile or bullish markets.
+          </div>
+        </div>
+
+        <div class="source-card">
+          <div class="source-header">
+            <div class="source-icon" style="background:rgba(0,212,255,0.08); font-size:22px">🏦</div>
+            <div class="source-badge" style="color:var(--accent2);border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.06)">Credit Yield</div>
+          </div>
+          <div class="source-name">Institutional Credit Yield</div>
+          <div class="source-desc">
+            On-chain institutional lending pools earn yield from real borrower demand.
+            More stable than funding rates across market cycles.
+          </div>
+        </div>
+
+        <div class="source-card">
+          <div class="source-header">
+            <div class="source-icon" style="background:rgba(123,97,255,0.08); font-size:22px">🏛️</div>
+            <div class="source-badge" style="color:var(--accent3);border-color:rgba(123,97,255,0.3);background:rgba(123,97,255,0.06)">RWA Yield</div>
+          </div>
+          <div class="source-name">Real-World Asset Yield</div>
+          <div class="source-desc">
+            Short-duration US Treasury exposure. The most stable source in the basket —
+            provides a yield floor independent of crypto market conditions.
+          </div>
+        </div>
+
+        <div class="source-card">
+          <div class="source-header">
+            <div class="source-icon" style="background:rgba(240,178,64,0.08); font-size:22px">🌉</div>
+            <div class="source-badge" style="color:var(--gold);border-color:rgba(240,178,64,0.3);background:rgba(240,178,64,0.06)">Bridge Arb</div>
+          </div>
+          <div class="source-name">Bridge Arbitrage Fees</div>
+          <div class="source-desc">
+            Cross-chain stablecoin variants trade at persistent discounts to native USDC.
+            Protocol pools absorb this arb flow continuously — structurally independent of yield markets.
+          </div>
+        </div>
+
+        <div class="source-card">
+          <div class="source-header">
+            <div class="source-icon" style="background:rgba(255,107,53,0.08); font-size:22px">💱</div>
+            <div class="source-badge" style="color:var(--warn);border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.06)">Swap Fees</div>
+          </div>
+          <div class="source-name">Swap Fees</div>
+          <div class="source-desc">
+            Every swap across all pools generates a fee that accrues directly to sgxUSD value.
+            Scales with trading volume — independent of rates, credit, or bridge flow.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ── POOLS ── -->
+  <section id="pools">
+    <div class="container">
+      <div class="section-label">Liquidity</div>
+      <h2 class="section-title">All fees accrue<br/>to sgxUSD.</h2>
+      <p class="section-body">
+        Protocol-owned liquidity across eight stablecoin pairs — yield assets, cross-chain variants,
+        and direct USDC/USDT entry and exit. Every swap fee flows back into sgxUSD value.
+        Pool details are available in the <a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">litepaper →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ── RISK SECTION ── -->
+  <section id="risks" class="risk-section">
+    <div class="container">
+      <div class="section-label" style="color:var(--warn)">Risk Disclosure</div>
+      <h2 class="section-title">Understand the risks<br/>before participating.</h2>
+
+      <div class="risk-banner">
+        <div class="risk-icon">⚠️</div>
+        <div>
+          <div class="risk-title">Experimental Software — High Risk</div>
+          <div class="risk-text">
+            GUTHIX Protocol is experimental software provided "as-is." sgxUSD is a vault token
+            whose NAV floats and is <strong>not guaranteed to appreciate</strong>. It is not a stablecoin,
+            not a security, and not a guaranteed yield product. Participation may result in partial
+            or total loss of funds. Smart contract code has been community-reviewed but has not
+            undergone a professional audit at launch. A hard TVL cap is enforced until a
+            professional audit is complete. Do not participate with funds you cannot afford to lose.
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-grid">
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Smart Contract Risk</div>
+          <div class="risk-item-text">Despite community review, the protocol may contain bugs or vulnerabilities. Loss of funds is possible. A professional audit is planned but not yet complete at launch.</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Market Risk</div>
+          <div class="risk-item-text">sgxUSD NAV floats and may decrease. Yield sources are volatile and not guaranteed. All five yield sources can compress simultaneously in adverse market conditions.</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Counterparty Risk</div>
+          <div class="risk-item-text">Yield depends on Ethena, Maple, and Ondo. Failure or depeg of any collateral asset directly impacts sgxUSD NAV. GUTHIX does not control these protocols.</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Liquidity Risk</div>
+          <div class="risk-item-text">Exits occur via secondary markets only. No direct redemption exists. Slippage may occur during high volatility. Protocol-owned liquidity depth may be insufficient for large exits.</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Regulatory Risk</div>
+          <div class="risk-item-text">Laws governing digital assets are evolving rapidly. Regulatory changes may affect your ability to access or use the protocol. You are responsible for compliance with local laws.</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-title">⚠ Cross-Chain Risk</div>
+          <div class="risk-item-text">Bridging via Wormhole introduces additional smart contract and finality risks. Wormhole-bridged stablecoin variants carry independent depeg risk beyond the underlying asset.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DISCLAIMER ── -->
+  <section class="disclaimer-section">
+    <div class="container">
+      <div class="disclaimer-box">
+        <div class="disclaimer-title">Legal Disclaimer</div>
+        <div class="disclaimer-text">
+          <strong>This website is for informational purposes only.</strong> Nothing on this site constitutes financial advice,
+          investment recommendations, or an offer to sell or solicitation to buy any securities, tokens,
+          or financial instruments. GUTHIX Protocol is a decentralized protocol operating on a best-efforts basis.
+          sgxUSD is a vault token — its value floats and is not guaranteed to appreciate or remain stable.
+          Yield is expressed as passive NAV appreciation derived from external market sources, not protocol-generated profits.
+          No yield, return, or NAV stability is promised or implied.
+          <br/><br/>
+          <strong>User responsibility:</strong> You are solely responsible for ensuring participation is legal in your jurisdiction,
+          reporting applicable tax obligations, and understanding all risks associated with experimental DeFi protocols.
+          Access may be restricted in certain jurisdictions. By interacting with this protocol you confirm you are
+          not located in a sanctioned jurisdiction and are not using the protocol for any prohibited purpose.
+          <br/><br/>
+          Collateral assets including sUSDe, syrupUSDC, USDY, and Wormhole-bridged stablecoin variants carry
+          their own independent risks. Past performance of any yield source is not indicative of future results.
+          Consult qualified legal, financial, and tax advisors before participating.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">GUTHIX</div>
+        <ul class="footer-links">
+          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/COMPLIANCE_PRINCIPLES.md" target="_blank" rel="noopener">Compliance</a></li>
+          <li><a href="#risks">Risk Disclosure</a></li>
+          <li><a href="https://x.com/" target="_blank" rel="noopener">Twitter / X</a></li>
+        </ul>
+        <div class="footer-copy">© 2026 GUTHIX Protocol · MIT License</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Fade-up on scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.step, .source-card, .arch-card, .risk-item, .pool-row').forEach(el => {
+      el.classList.add('fade-up');
+      observer.observe(el);
+    });
+
+    // Nav scroll effect
+    window.addEventListener('scroll', () => {
+      document.querySelector('nav').style.borderBottomColor =
+        window.scrollY > 40 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
+    });
+  </script>
+</body>
+</html>
