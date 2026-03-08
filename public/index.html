@@ -841,6 +841,227 @@
       .pools-header, .pool-row { grid-template-columns: 2fr 1fr 1fr; }
       .pool-type-col { display: none; }
     }
+
+    /* ══════════════════════════════════════════════════
+       SWAP WIDGET SECTION
+    ══════════════════════════════════════════════════ */
+
+    /* ── SWAP SECTION WRAPPER ── */
+    #swap {
+      padding: 100px 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(79,255,164,0.015) 50%, transparent 100%);
+    }
+    .swap-section-inner {
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 80px;
+      align-items: start;
+    }
+    .swap-section-lead { padding-top: 8px; }
+    .swap-section-lead .section-label { margin-bottom: 20px; }
+    .swap-section-lead .section-title { margin-bottom: 20px; }
+    .swap-section-lead .section-body { margin-bottom: 32px; }
+    .swap-section-taglines {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 40px;
+    }
+    .swap-tagline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+    }
+    .swap-tagline-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    @media (max-width: 900px) {
+      .swap-section-inner { grid-template-columns: 1fr; gap: 48px; }
+      .swap-section-lead { order: 1; }
+      .swap-widget-col { order: 2; }
+    }
+
+    /* ── NAV CONNECT BUTTON ── */
+    .nav-connect-btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #080B12;
+      background: var(--accent);
+      border: none;
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-connect-btn:hover { background: #6FFFB8; transform: translateY(-1px); }
+    .nav-connect-btn.connected {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid rgba(79,255,164,0.3);
+    }
+    .nav-connect-btn.connected:hover { background: rgba(79,255,164,0.08); transform: none; }
+
+    /* ── SWAP WIDGET APP WRAPPER ── */
+    .swap-app-wrapper {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      animation: swFadeUp 0.5s ease forwards;
+    }
+    @keyframes swFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── TOOLTIP ── */
+    .sw-tip-wrap { position: relative; display: inline-flex; align-items: center; }
+    .sw-tip-icon {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1px solid var(--text3); color: var(--text3);
+      font-size: 9px; font-family: var(--font-mono);
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: default; margin-left: 5px; flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .sw-tip-icon:hover { border-color: var(--text2); color: var(--text2); }
+    .sw-tip-bubble {
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface3, #2C2740); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 10px 13px;
+      font-family: var(--font-mono); font-size: 10px; line-height: 1.6;
+      color: var(--text2); letter-spacing: 0.03em;
+      width: 220px; text-align: left;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 50;
+      white-space: normal;
+    }
+    .sw-tip-bubble::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: var(--border2);
+    }
+    .sw-tip-wrap:hover .sw-tip-bubble { opacity: 1; }
+
+    /* ── VAULT STAT BAR ── */
+    .sw-vault-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px 12px 0 0; border-bottom: none;
+      overflow: hidden;
+    }
+    .sw-vault-stat {
+      padding: 14px 16px;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .sw-vault-stat:last-child { border-right: none; }
+    .sw-vault-stat-label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--text3);
+      display: flex; align-items: center; gap: 0; margin-bottom: 6px;
+    }
+    .sw-vault-stat-value {
+      font-family: var(--font-mono); font-size: 15px; font-weight: 500;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .sw-vault-stat-value.accent { color: var(--accent); }
+    .sw-vault-stat-sub {
+      font-family: var(--font-mono); font-size: 9px; color: var(--text3);
+      margin-top: 2px; letter-spacing: 0.04em;
+    }
+
+    /* ── TAB TOGGLE ── */
+    .sw-tab-toggle {
+      display: flex; background: var(--surface2);
+      border: 1px solid var(--border2); border-top: none; border-bottom: none;
+      overflow: hidden; position: relative;
+    }
+    .sw-tab-btn { flex: 1; padding: 13px 0; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); background: transparent; border: none; cursor: pointer; transition: all 0.2s; position: relative; z-index: 1; }
+    .sw-tab-btn.active { color: var(--text); }
+    .sw-tab-slider { position: absolute; top: 5px; bottom: 5px; width: calc(50% - 8px); background: var(--surface3, #2C2740); border-radius: 7px; border: 1px solid var(--border2); transition: left 0.25s cubic-bezier(0.34,1.56,0.64,1); left: 6px; }
+    .sw-tab-slider.right { left: calc(50% + 2px); }
+
+    /* ── MAIN VAULT CARD ── */
+    .sw-vault-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: none; border-radius: 0 0 16px 16px;
+      padding: 20px;
+    }
+
+    /* ── TOKEN DROPDOWN ── */
+    .sw-token-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
+    .sw-token-dropdown { position: relative; }
+    .sw-token-trigger {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0.05em;
+      color: var(--text); background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 8px 12px 8px 8px; cursor: pointer; transition: all 0.15s;
+      min-width: 130px; user-select: none;
+    }
+    .sw-token-trigger:hover { border-color: var(--accent); background: var(--surface3, #2C2740); }
+    .sw-token-trigger.open { border-color: var(--accent); background: var(--surface3, #2C2740); }
+    .sw-token-trigger-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sw-token-trigger-label { flex: 1; }
+    .sw-token-trigger-chevron { font-size: 9px; color: var(--text3); transition: transform 0.2s; margin-left: 4px; }
+    .sw-token-trigger.open .sw-token-trigger-chevron { transform: rotate(180deg); }
+    .sw-token-menu {
+      position: absolute; top: calc(100% + 6px); left: 0;
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 12px; overflow: hidden;
+      min-width: 200px; z-index: 50;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      opacity: 0; transform: translateY(-6px) scale(0.97);
+      pointer-events: none; transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .sw-token-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+    .sw-token-menu-section {
+      padding: 6px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .sw-token-menu-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+    .sw-token-menu-label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text3); padding: 6px 10px 4px;
+    }
+    .sw-token-option {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--text2); border-radius: 8px;
+      padding: 9px 10px; cursor: pointer; transition: all 0.12s;
+    }
+    .sw-token-option:hover { background: var(--surface3, #2C2740); color: var(--text); }
+    .sw-token-option.active { background: rgba(79,255,164,0.08); color: var(--accent); }
+    .sw-token-option.active .sw-token-check { opacity: 1; }
+    .sw-token-option-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sw-token-option-info { flex: 1; }
+    .sw-token-option-symbol { font-size: 13px; }
+    .sw-token-option-bal { font-size: 10px; color: var(--text3); margin-top: 1px; }
+    .sw-token-check { font-size: 10px; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
+    .sw-token-option-tag {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em;
+      color: var(--gold); background: rgba(240,178,64,0.08);
+      border: 1px solid rgba(240,178,64,0.2); border-radius: 4px;
+      padding: 2px 6px; white-space: nowrap;
+    }
+    /* Token colour classes */
+    .tc-usdc { background: linear-gradient(135deg,#2775CA,#5BA4E6); color: white; }
+    .tc-usdt { background: linear-gradient(135deg,#26A17B,#4FD1A5); color: white; }
+    .tc-sgx  { background: linear-gradient(135deg,var(--accent),var(--accent2)); color: #080B12; }
+    .tc-sol  { background: linear-gradient(135deg,#9945FF,#14F195); color: white; }
+    .tc-usde { background: linear-gradient(135deg,#1A1A2E,#4B0082); color: #A78BFA; font-weight: 700; }
+    .tc-usds { background: linear-gradient(135deg,#1C3A5E,#2563EB); color: #93C5FD; font-weight: 700; }
+    .tc-usdg { background: linear-gradient(135deg,#14532D,#16A34A); color: #86EFAC; font-weight: 700; }
+    .sw-token-circle.tc-sgx { font-size: 11px; letter-spacing: -0.02em; }
   </style>
 </head>
 <body>
@@ -855,16 +1076,16 @@
     <div class="container">
       <div class="nav-inner">
         <a href="/" class="logo">
-          <div class="logo-mark">G</div>
           GUTHIX
         </a>
         <ul class="nav-links">
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#yield">Yield Sources</a></li>
           <li><a href="#risks">Risks</a></li>
-          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
-        <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener" class="nav-cta">GitHub →</a>
+        <a href="swap.html" class="nav-cta">App →</a>
       </div>
     </div>
   </nav>
@@ -875,9 +1096,9 @@
       <div class="hero-inner">
 
         <div>
-          <div class="status-pill">
-            <span class="status-dot"></span>
-            In Development — Devnet Q2 2026
+          <div class="status-pill" style="color:var(--accent);background:rgba(79,255,164,0.08);border-color:rgba(79,255,164,0.25)">
+            <span class="status-dot" style="background:var(--accent)"></span>
+            Mainnet Testing Live
           </div>
           <div class="hero-eyebrow">Solana · sgxUSD · Vault Token</div>
           <h1 class="hero-title">
@@ -893,11 +1114,11 @@
             No claiming. No staking. No redemption queues.
           </p>
           <div class="hero-actions">
-            <a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener" class="btn-primary">
-              Read the Litepaper →
+            <a href="swap.html" class="btn-primary">
+              Launch App →
             </a>
-            <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener" class="btn-secondary">
-              View on GitHub
+            <a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener" class="btn-secondary">
+              Read the Litepaper
             </a>
           </div>
         </div>
@@ -995,7 +1216,7 @@
       </div>
 
       <div class="feature-row">
-        <div class="feature-pill"><span class="feature-pill-icon">🔒</span> Non-custodial</div>
+        <div class="feature-pill"><span class="feature-pill-icon">⚙️</span> DeFi-powered</div>
         <div class="feature-pill"><span class="feature-pill-icon">⚡</span> Solana-native</div>
         <div class="feature-pill"><span class="feature-pill-icon">🌐</span> Bridges to Base</div>
         <div class="feature-pill"><span class="feature-pill-icon">🚫</span> Zero emissions</div>
@@ -1090,7 +1311,7 @@
       <p class="section-body">
         Protocol-owned liquidity across eight stablecoin pairs — yield assets, cross-chain variants,
         and direct USDC/USDT entry and exit. Every swap fee flows back into sgxUSD value.
-        Pool details are available in the <a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">litepaper →</a>
+        Pool details are available in the <a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">litepaper →</a>
       </p>
     </div>
   </section>
@@ -1177,11 +1398,11 @@
       <div class="footer-inner">
         <div class="footer-logo">GUTHIX</div>
         <ul class="footer-links">
-          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
           <li><a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">GitHub</a></li>
           <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/COMPLIANCE_PRINCIPLES.md" target="_blank" rel="noopener">Compliance</a></li>
           <li><a href="#risks">Risk Disclosure</a></li>
-          <li><a href="https://x.com/" target="_blank" rel="noopener">Twitter / X</a></li>
+          <li><a href="https://x.com/GuthixFinance" target="_blank" rel="noopener">Twitter / X</a></li>
         </ul>
         <div class="footer-copy">© 2026 GUTHIX Protocol · MIT License</div>
       </div>
