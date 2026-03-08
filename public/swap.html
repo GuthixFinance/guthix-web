@@ -92,7 +92,7 @@
     .swap-col-sub { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
 
     /* ── VAULT STAT BAR ── */
-    .vault-stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--border2); border-radius: 12px 12px 0 0; border-bottom: none; overflow: hidden; }
+    .vault-stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--border2); border-radius: 12px 12px 0 0; border-bottom: none; overflow: visible; }
     .vault-stat { padding: 13px 14px; border-right: 1px solid var(--border); }
     .vault-stat:last-child { border-right: none; }
     .vault-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); display: flex; align-items: center; margin-bottom: 5px; }
@@ -114,7 +114,7 @@
     .tip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tip-icon { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--text3); color: var(--text3); font-size: 9px; font-family: var(--font-mono); display: inline-flex; align-items: center; justify-content: center; cursor: default; margin-left: 5px; flex-shrink: 0; transition: border-color 0.15s, color 0.15s; }
     .tip-icon:hover { border-color: var(--text2); color: var(--text2); }
-    .tip-bubble { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--surface3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 13px; font-family: var(--font-mono); font-size: 10px; line-height: 1.6; color: var(--text2); letter-spacing: 0.03em; width: 220px; text-align: left; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 50; white-space: normal; }
+    .tip-bubble { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--surface3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 13px; font-family: var(--font-mono); font-size: 10px; line-height: 1.6; color: var(--text2); letter-spacing: 0.03em; width: 220px; text-align: left; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 150; white-space: normal; }
     .tip-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--border2); }
     .tip-wrap:hover .tip-bubble { opacity: 1; }
 
@@ -1217,24 +1217,33 @@
       const infoCol    = document.querySelector('.info-col');
       const swapCol    = document.querySelector('.swap-col');
       const statusBar  = document.querySelector('.status-bar');
+      const appShell  = document.querySelector('.app-shell');
       if (mode === 'simple') {
         appContent.style.gridTemplateColumns = '1fr';
-        infoCol.style.display    = 'none';
+        infoCol.style.display     = 'none';
         swapCol.style.borderRight = 'none';
-        swapCol.style.maxWidth   = '520px';
-        swapCol.style.margin     = '0 auto';
-        swapCol.style.overflowY  = 'visible';
-        swapCol.style.maxHeight  = 'none';
+        swapCol.style.maxWidth    = '520px';
+        swapCol.style.margin      = '0 auto';
+        swapCol.style.overflowY   = 'visible';
+        swapCol.style.maxHeight   = 'none';
+        swapCol.style.position    = 'static';
         if (statusBar) statusBar.style.display = 'none';
+        document.body.style.height    = 'auto';
+        document.body.style.overflowY = 'auto';
+        if (appShell) appShell.style.minHeight = 'auto';
       } else {
         appContent.style.gridTemplateColumns = '440px 1fr';
-        infoCol.style.display    = '';
+        infoCol.style.display     = '';
         swapCol.style.borderRight = '';
-        swapCol.style.maxWidth   = '';
-        swapCol.style.margin     = '';
-        swapCol.style.overflowY  = '';
-        swapCol.style.maxHeight  = '';
+        swapCol.style.maxWidth    = '';
+        swapCol.style.margin      = '';
+        swapCol.style.overflowY   = '';
+        swapCol.style.maxHeight   = '';
+        swapCol.style.position    = '';
         if (statusBar) statusBar.style.display = '';
+        document.body.style.height    = '';
+        document.body.style.overflowY = '';
+        if (appShell) appShell.style.minHeight = '';
       }
     }
 
