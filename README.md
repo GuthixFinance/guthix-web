@@ -71,7 +71,6 @@ All external API calls are proxied through the server to avoid CORS and hide cre
 | **sgxUSD/syrupUSDC pool** (0.10%, DAMM v1) | `3SjZNbuyzL5tow1LXf7mHYutnWdpboq97Z1RSfwpoVcT` |
 | **Manifest CLOB market** (0%, limit orders) | `Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo` |
 | **Manifest sgxUSD vault account** | `ALGCuBDd7SLJsJyA8k9NPhjfduBMnAgZoYMUUjuR2x7v` |
-| **Helius RPC** | `https://mainnet.helius-rpc.com/?api-key=6df6c556-796b-48f1-a24a-21ffe0995f66` |
 
 All three Meteora pools are **DAMM v1 ("Dynamic Pool · Stable · Permissionless")** — not DLMM.
 
