@@ -1,6 +1,6 @@
 # GUTHIX App — Deploy to Railway
 
-**Live at:** https://guthix-production.up.railway.app
+**Live at:** [https://guthix-production.up.railway.app](https://wholesome-cat-production-ca09.up.railway.app/swap.html)
 
 ---
 
@@ -121,6 +121,6 @@ All three Meteora pools are **DAMM v1 ("Dynamic Pool · Stable · Permissionless
 
 ## Links
 
-- App: https://guthix-production.up.railway.app/swap.html
+- App: [https://guthix-production.up.railway.app/swap.html](https://wholesome-cat-production-ca09.up.railway.app/swap.html)
 - X: https://x.com/GuthixFinance
 - GitHub: https://github.com/GuthixFinance
