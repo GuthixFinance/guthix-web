@@ -34,7 +34,7 @@
       --bar-h: 52px;
     }
 
-    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
     body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.5; }
     .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(rgba(155,127,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(155,127,255,0.02) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
@@ -66,7 +66,8 @@
 
     /* ── APP SHELL ── */
     .app-shell { min-height: 100vh; padding-top: var(--nav-h); display: flex; flex-direction: column; position: relative; z-index: 1; }
-
+    .app-content { flex: 1; display: grid; grid-template-columns: 440px 1fr; align-items: start; }
+    .swap-col { border-right: 1px solid var(--border); padding: 32px 28px; }
     /* ── STATUS BAR ── */
     .status-bar { border-bottom: 1px solid var(--border); background: var(--bg2); display: flex; align-items: stretch; height: var(--bar-h); overflow-x: auto; flex-shrink: 0; }
     .status-bar::-webkit-scrollbar { display: none; }
@@ -78,13 +79,6 @@
     .sbar-value.cyan   { color: var(--accent2); }
     .sbar-spacer { flex: 1; min-width: 0; }
 
-    /* ── MAIN CONTENT ── */
-    .app-content { flex: 1; display: grid; grid-template-columns: 440px 1fr; align-items: start; min-height: 0; }
-
-    /* ── LEFT: SWAP COLUMN ── */
-    .swap-col { border-right: 1px solid var(--border); padding: 32px 28px; position: sticky; top: calc(var(--nav-h) + var(--bar-h)); max-height: calc(100vh - var(--nav-h) - var(--bar-h)); overflow-y: auto; }
-    .swap-col::-webkit-scrollbar { width: 4px; }
-    .swap-col::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
 
     .swap-col-header { margin-bottom: 24px; }
     .mode-pills-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
@@ -960,7 +954,7 @@
       set('sbarTvl',   state.aprTvl!=null   ? fmtUsd(state.aprTvl)                : '—');
       set('sbarVol',   state.aprVol24h!=null? fmtUsd(state.aprVol24h)             : '—');
       const bal=state.balances[CONFIG.SGXUSD_MINT];
-      set('sbarBalance', bal!=null?`${fmtBal(bal,2)} sgx`:(state.wallet?'0 sgx':'—'));
+      set('sbarBalance', bal!=null?`${fmtBal(bal,2)} sgxUSD`:(state.wallet?'0 sgxUSD':'—'));
       setDot('navBarDot', state.navStale?'stale':(state.navPrice?'live':'loading'));
       const apy=document.querySelector('.nav-apy');
       if (apy&&state.aprPct!=null) apy.innerHTML=`<span class="status-dot"></span> Fee APR ${state.aprPct.toFixed(2)}%`;
@@ -1224,26 +1218,14 @@
         swapCol.style.borderRight = 'none';
         swapCol.style.maxWidth    = '520px';
         swapCol.style.margin      = '0 auto';
-        swapCol.style.overflowY   = 'visible';
-        swapCol.style.maxHeight   = 'none';
-        swapCol.style.position    = 'static';
         if (statusBar) statusBar.style.display = 'none';
-        document.body.style.height    = 'auto';
-        document.body.style.overflowY = 'auto';
-        if (appShell) appShell.style.minHeight = 'auto';
       } else {
         appContent.style.gridTemplateColumns = '440px 1fr';
         infoCol.style.display     = '';
         swapCol.style.borderRight = '';
         swapCol.style.maxWidth    = '';
         swapCol.style.margin      = '';
-        swapCol.style.overflowY   = '';
-        swapCol.style.maxHeight   = '';
-        swapCol.style.position    = '';
         if (statusBar) statusBar.style.display = '';
-        document.body.style.height    = '';
-        document.body.style.overflowY = '';
-        if (appShell) appShell.style.minHeight = '';
       }
     }
 
