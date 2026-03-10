@@ -695,9 +695,11 @@
       MANIFEST_URL:           'https://manifest.trade/market/Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo',
       METEORA_API:     '/api/meteora',      // DLMM datapi proxy — GET /api/meteora/pool/{address}
       DSX_API:         '/api/dexscreener',
+      BIRDEYE_API:     'https://public-api.birdeye.so',
       NAV_REFRESH_MS:  30_000,
       APR_REFRESH_MS:  60_000,
       DSX_REFRESH_MS:  30_000,
+      BIRDEYE_REFRESH_MS: 30_000,
     };
 
     const TOKENS = {
@@ -714,6 +716,7 @@
     const state = {
       tab: 'deposit', depositToken: 'USDC', slippageBps: null,
       liveQuoteRate: null, navRate: null, navPrice: null,
+      birdeyePrice: null, birdeyeLastUpdated: null,
       navStale: false, navLastUpdated: null,
       aprPct: null, aprFee24h: null, aprTvl: null, aprVol24h: null,
       aprStale: false, aprLastUpdated: null,
@@ -749,22 +752,57 @@
       renderNav(); renderStatusBar();
     }
 
+    // ── BIRDEYE PRICE ──
+    // Uses Birdeye's public API (no key required for basic price endpoint) to
+    // get the real on-chain market price of sgxUSD. This fixes the hardcoded
+    // $1.00 exchange rate shown before any Jupiter quote is fetched.
+    async function fetchBirdeyePrice() {
+      try {
+        const res = await fetch(
+          `${CONFIG.BIRDEYE_API}/defi/price?address=${CONFIG.SGXUSD_MINT}&chain=solana`,
+          { headers: { 'X-Chain': 'solana' } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const price = data?.data?.value ?? data?.data?.price ?? null;
+        if (!price || isNaN(price)) throw new Error('No price in response');
+        const p = parseFloat(price);
+        state.birdeyePrice = p;
+        state.birdeyeLastUpdated = Date.now();
+        // Only use Birdeye price if we don't yet have a Jupiter quote
+        if (state.navPrice == null || state.navStale) {
+          state.navPrice = p;
+          state.navRate  = p > 0 ? 1 / p : null;
+          state.navStale = false;
+          setDot('navStatus', 'live'); setDot('rateStatus', 'live'); setDot('navPriceDot', 'live');
+          renderNav(); renderStatusBar();
+        }
+        console.log('[GUTHIX] Birdeye sgxUSD price:', p);
+      } catch (err) {
+        console.warn('[GUTHIX] Birdeye price failed:', err.message);
+      }
+    }
+
     function renderNav() {
       const navEl=document.getElementById('navDisplay'), rateEl=document.getElementById('exchangeRate');
       const npcNav=document.getElementById('npcNavPrice'), npcRate=document.getElementById('npcRate');
-      if (!state.navPrice) {
+      // Priority: live Jupiter navPrice → Birdeye price → nothing
+      const displayPrice = state.navPrice ?? state.birdeyePrice ?? null;
+      const displayRate  = state.navRate  ?? (state.birdeyePrice > 0 ? 1 / state.birdeyePrice : null);
+      if (!displayPrice) {
         [navEl,rateEl,npcNav,npcRate].forEach(e=>{ if(e) e.textContent='—'; });
         if (rateEl) rateEl.textContent='Pre-launch'; return;
       }
       const s=state.navStale?'~':'';
-      if (navEl)   navEl.textContent  = `${s}$${state.navPrice.toFixed(4)}`;
-      if (npcNav)  npcNav.textContent = `${s}$${state.navPrice.toFixed(4)}`;
-      if (npcRate) npcRate.textContent = `${s}${state.navRate.toFixed(4)} USD`;
+      if (navEl)   navEl.textContent  = `${s}$${displayPrice.toFixed(4)}`;
+      if (npcNav)  npcNav.textContent = `${s}$${displayPrice.toFixed(4)}`;
+      if (npcRate) npcRate.textContent = displayRate ? `${s}${displayRate.toFixed(4)} sgxUSD` : '—';
       const tok=TOKENS[state.depositToken];
-      if (state.tab==='withdraw') { if (rateEl) rateEl.textContent=`1 sgxUSD = ${s}$${state.navPrice.toFixed(4)}`; return; }
+      if (state.tab==='withdraw') { if (rateEl) rateEl.textContent=`1 sgxUSD = ${s}$${displayPrice.toFixed(4)}`; return; }
       if (state.liveQuoteRate!=null) { if (rateEl) rateEl.textContent=`1 ${tok.symbol} ≈ ${state.liveQuoteRate.toFixed(4)} sgxUSD`; }
-      else if (tok.symbol==='USDC')  { if (rateEl) rateEl.textContent=`1 USDC = ${s}${state.navRate.toFixed(4)} sgxUSD`; }
-      else                           { if (rateEl) rateEl.textContent=`Enter amount for ${tok.symbol} rate`; }
+      else if (displayRate!=null && tok.symbol==='USDC') { if (rateEl) rateEl.textContent=`1 USDC ≈ ${s}${displayRate.toFixed(4)} sgxUSD`; }
+      else if (displayPrice!=null)   { if (rateEl) rateEl.textContent=`Enter amount for ${tok.symbol} rate`; }
+      else                           { if (rateEl) rateEl.textContent='Pre-launch'; }
     }
 
     // ── POOL TVL — Helius RPC (getTokenAccountsByOwner) ──
@@ -1269,7 +1307,8 @@
 
     // ── BOOT ──
     function startPolling() {
-      fetchNavRate(); fetchPoolTVL(); fetchDexScreener(); fetchTokenSupply();
+      fetchBirdeyePrice(); fetchNavRate(); fetchPoolTVL(); fetchDexScreener(); fetchTokenSupply();
+      setInterval(fetchBirdeyePrice, CONFIG.BIRDEYE_REFRESH_MS);
       setInterval(fetchNavRate,    CONFIG.NAV_REFRESH_MS);
       setInterval(fetchPoolAPR,    CONFIG.APR_REFRESH_MS);
       setInterval(fetchPoolTVL,    120_000); // TVL from RPC every 2 min
@@ -1278,6 +1317,7 @@
       document.addEventListener('visibilitychange',()=>{
         if (document.visibilityState==='visible'){
           const now=Date.now();
+          if (!state.birdeyeLastUpdated||now-state.birdeyeLastUpdated>CONFIG.BIRDEYE_REFRESH_MS) fetchBirdeyePrice();
           if (!state.navLastUpdated||now-state.navLastUpdated>CONFIG.NAV_REFRESH_MS) fetchNavRate();
           if (!state.aprLastUpdated||now-state.aprLastUpdated>CONFIG.APR_REFRESH_MS) fetchPoolAPR();
           if (!state.dsxLastUpdated||now-state.dsxLastUpdated>CONFIG.DSX_REFRESH_MS) fetchDexScreener();
