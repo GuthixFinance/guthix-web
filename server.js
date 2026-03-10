@@ -218,6 +218,46 @@ app.get('/api/dexscreener/pairs/solana/:address', (req, res) => {
   );
 });
 
+// ── Meteora DAMM v1 API — pool data (TVL, volume, fees) ──
+// GET /api/meteora/pools/:address  → https://damm-api.meteora.ag/pools/:address
+// Returns: { pool_tvl, trading_volume (24h), fee_volume (24h), pool_token_amounts,
+//            pool_token_usd_amounts, pool_token_mints, trade_apy, ... }
+app.get('/api/meteora/pools/:address', (req, res) => {
+  proxy(
+    `https://damm-api.meteora.ag/pools/${req.params.address}`,
+    { headers: { Accept: 'application/json' } },
+    res
+  );
+});
+
+// Batch: POST { addresses: [...] } → fetch all in parallel, return keyed by address
+app.post('/api/meteora/pools-batch', async (req, res) => {
+  const { addresses } = req.body;
+  if (!Array.isArray(addresses) || !addresses.length) {
+    return res.status(400).json({ error: 'addresses array required' });
+  }
+  const results = {};
+  await Promise.all(addresses.map(async (addr) => {
+    try {
+      const { status, body } = await httpRequest(
+        `https://damm-api.meteora.ag/pools/${addr}`,
+        { headers: { Accept: 'application/json' } }
+      );
+      const data = JSON.parse(body);
+      if (status === 200 && data.pool_address) {
+        results[addr] = data;
+        console.log(`[meteora] pool ${addr.slice(0,8)}… TVL=$${data.pool_tvl} vol24h=$${data.trading_volume}`);
+      } else {
+        results[addr] = { error: `HTTP ${status}` };
+      }
+    } catch (err) {
+      console.warn(`[meteora] pool ${addr.slice(0,8)}… error:`, err.message);
+      results[addr] = { error: err.message };
+    }
+  }));
+  res.json(results);
+});
+
 // ── Fallback ──
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
