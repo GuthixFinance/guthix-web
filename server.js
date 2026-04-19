@@ -218,6 +218,11 @@ app.get('/api/dexscreener/pairs/solana/:address', (req, res) => {
   );
 });
 
+// ── TEST ENDPOINT ──
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // ── Meteora DAMM v1 API — pool data (TVL, volume, fees) ──
 // The damm-api expects the list endpoint with ?address= filter; the singular
 // /pools/:address form rejects with "missing field `page`".
