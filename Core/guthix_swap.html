@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUTHIX — Swap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0E0B14;
+      --bg2:      #13101C;
+      --surface:  #1C1826;
+      --surface2: #241F32;
+      --surface3: #2C2740;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.12);
+      --text:     #EAE8F2;
+      --text2:    #8B87A8;
+      --text3:    #524E6B;
+      --accent:   #4FFFA4;
+      --accent2:  #00D4FF;
+      --purple:   #9B7FFF;
+      --gold:     #F0B240;
+      --warn:     #FF6B35;
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE + GRID ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: 0.5;
+    }
+    .grid-bg {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(155,127,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(155,127,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── ORBS ── */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(100px); pointer-events: none; z-index: 0;
+      animation: drift 18s ease-in-out infinite;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(155,127,255,0.08); top: -100px; right: -80px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(79,255,164,0.05); bottom: 10%; left: -100px; animation-delay: -9s; }
+    @keyframes drift {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(20px,-20px) scale(1.05); }
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      height: 60px;
+      background: rgba(14,11,20,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-logo {
+      display: flex; align-items: center; gap: 9px;
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: #080B12;
+    }
+    .nav-divider { width: 1px; height: 20px; background: var(--border2); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link {
+      font-family: var(--font-mono);
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text3); text-decoration: none;
+      padding: 6px 12px; border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--text2); background: var(--surface); }
+    .nav-link.active { color: var(--text); background: var(--surface2); }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-icon-btn {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s;
+      color: var(--text2); font-size: 15px;
+      text-decoration: none;
+    }
+    .nav-icon-btn:hover { border-color: var(--border2); color: var(--text); }
+    .connect-btn {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--bg); background: var(--purple);
+      border: none; padding: 0 20px; height: 34px;
+      border-radius: 8px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .connect-btn:hover { background: #B09AFF; transform: translateY(-1px); }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px 40px;
+      position: relative; z-index: 1;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── TAB TOGGLE ── */
+    .tab-toggle {
+      display: flex;
+      background: var(--surface2);
+      border-radius: 12px 12px 0 0;
+      border: 1px solid var(--border2);
+      border-bottom: none;
+      overflow: hidden;
+      position: relative;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 14px 0;
+      font-family: var(--font-mono);
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text3);
+      background: transparent;
+      border: none; cursor: pointer;
+      transition: all 0.2s;
+      position: relative; z-index: 1;
+    }
+    .tab-btn.active { color: var(--text); }
+    .tab-slider {
+      position: absolute;
+      top: 6px; bottom: 6px;
+      width: calc(50% - 8px);
+      background: var(--surface3);
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      left: 6px;
+    }
+    .tab-slider.right { left: calc(50% + 2px); }
+
+    /* ── MAIN CARD ── */
+    .swap-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── TOKEN SELECTOR ROW ── */
+    .token-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .token-pills { display: flex; gap: 6px; }
+    .token-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--font-mono);
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px 6px 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .token-pill:hover { border-color: var(--border2); color: var(--text); }
+    .token-pill.active {
+      background: var(--surface3);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+    .token-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .token-icon-usdc { background: linear-gradient(135deg, #2775CA, #5BA4E6); color: white; }
+    .token-icon-usdt { background: linear-gradient(135deg, #26A17B, #4FD1A5); color: white; }
+
+    .priority-row { display: flex; align-items: center; gap: 8px; }
+    .priority-label {
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text3);
+    }
+    .priority-pills { display: flex; gap: 3px; }
+    .priority-pill {
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.06em;
+      color: var(--text3);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .priority-pill:hover { color: var(--text2); }
+    .priority-pill.active {
+      color: var(--accent);
+      background: rgba(79,255,164,0.08);
+      border-color: rgba(79,255,164,0.2);
+    }
+
+    /* ── INPUT BLOCKS ── */
+    .input-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+    .input-block:focus-within { border-color: var(--border2); }
+    .input-block-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .input-block-label {
+      font-family: var(--font-mono);
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text2); font-weight: 500;
+    }
+    .input-block-balance {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--text3);
+    }
+    .balance-icon {
+      width: 16px; height: 16px;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+    }
+    .input-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .token-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700;
+    }
+    .token-circle-usdc { background: linear-gradient(135deg, #2775CA, #5BA4E6); color: white; font-size: 14px; }
+    .token-circle-usdt { background: linear-gradient(135deg, #26A17B, #4FD1A5); color: white; font-size: 14px; }
+    .token-circle-sgx {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #080B12; font-size: 13px; letter-spacing: -0.02em;
+    }
+    .input-field {
+      flex: 1;
+      background: transparent;
+      border: none; outline: none;
+      font-family: var(--font-mono);
+      font-size: 28px; font-weight: 300;
+      color: var(--text3);
+      width: 100%;
+    }
+    .input-field::placeholder { color: var(--text3); }
+    .input-field:focus { color: var(--text); }
+    .input-field.has-value { color: var(--text); }
+    .max-btn {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text3);
+      background: var(--surface3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer; transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .max-btn:hover { color: var(--accent); border-color: rgba(79,255,164,0.3); }
+
+    /* ── RECEIVE BLOCK ── */
+    .receive-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .receive-label {
+      font-family: var(--font-mono);
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text2); font-weight: 500;
+    }
+    .apy-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .apy-label { color: var(--text3); letter-spacing: 0.1em; }
+    .apy-value {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .apy-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(79,255,164,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(79,255,164,0); }
+    }
+    .receive-value {
+      font-family: var(--font-mono);
+      font-size: 28px; font-weight: 300;
+      color: var(--text3);
+      transition: color 0.2s;
+    }
+    .receive-value.has-value { color: var(--text); }
+
+    /* ── SWAP ARROW ── */
+    .swap-arrow-wrap {
+      display: flex; justify-content: center;
+      margin: -4px 0;
+      position: relative; z-index: 2;
+    }
+    .swap-arrow-btn {
+      width: 34px; height: 34px;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text2);
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    .swap-arrow-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: rotate(180deg);
+    }
+
+    /* ── CAPACITY BAR ── */
+    .capacity-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+    }
+    .capacity-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .capacity-label {
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text3);
+    }
+    .capacity-value {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--text2);
+    }
+    .capacity-bar-track {
+      height: 3px;
+      background: var(--surface3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .capacity-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 3px;
+      width: 68%;
+      animation: barIn 1s ease-out forwards;
+      transform-origin: left;
+    }
+    @keyframes barIn {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    /* ── META ROWS ── */
+    .meta-rows {
+      display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 20px;
+      padding: 0 2px;
+    }
+    .meta-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .meta-key {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--text3);
+      letter-spacing: 0.04em;
+    }
+    .meta-val {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--text2);
+    }
+    .meta-val.highlight { color: var(--accent2); }
+
+    /* ── SWAP BUTTON ── */
+    .swap-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .swap-btn-in {
+      background: linear-gradient(135deg, rgba(79,255,164,0.15), rgba(0,212,255,0.1));
+      border: 1px solid rgba(79,255,164,0.3);
+      color: var(--accent);
+    }
+    .swap-btn-in:hover {
+      background: linear-gradient(135deg, rgba(79,255,164,0.25), rgba(0,212,255,0.18));
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(79,255,164,0.15);
+    }
+    .swap-btn-out {
+      background: linear-gradient(135deg, rgba(155,127,255,0.15), rgba(0,212,255,0.1));
+      border: 1px solid rgba(155,127,255,0.3);
+      color: var(--purple);
+    }
+    .swap-btn-out:hover {
+      background: linear-gradient(135deg, rgba(155,127,255,0.25), rgba(0,212,255,0.18));
+      border-color: var(--purple);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(155,127,255,0.15);
+    }
+
+    /* ── NAV BADGE ── */
+    .nav-apy {
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.1em;
+      color: var(--accent);
+      background: rgba(79,255,164,0.08);
+      border: 1px solid rgba(79,255,164,0.2);
+      padding: 4px 10px;
+      border-radius: 100px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ── FOOTER CREDIT ── */
+    .app-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .app-footer a { color: var(--text3); text-decoration: none; transition: color 0.15s; }
+    .app-footer a:hover { color: var(--text2); }
+
+    /* ── DISCLAIMER STRIP ── */
+    .disclaimer-strip {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(255,107,53,0.05);
+      border: 1px solid rgba(255,107,53,0.15);
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--text3);
+      font-weight: 300;
+    }
+    .disclaimer-strip strong { color: rgba(255,107,53,0.8); font-weight: 500; }
+
+    /* ── ANIMATIONS ── */
+    .fade-in {
+      animation: fadeIn 0.4s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- ── NAV ── -->
+  <nav>
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-mark">G</div>
+        GUTHIX
+      </a>
+      <div class="nav-divider"></div>
+      <div class="nav-links">
+        <a href="swap.html" class="nav-link active">Swap</a>
+        <a href="index.html#pools" class="nav-link">Pools</a>
+        <a href="index.html" class="nav-link">Info</a>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-apy">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block"></span>
+        APY —%
+      </div>
+      <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener" class="nav-icon-btn" title="GitHub">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="https://x.com/" target="_blank" rel="noopener" class="nav-icon-btn" title="Twitter / X">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <button class="connect-btn">Connect</button>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <main>
+    <div class="app-wrapper fade-in">
+
+      <!-- Tab Toggle -->
+      <div class="tab-toggle">
+        <div class="tab-slider" id="tabSlider"></div>
+        <button class="tab-btn active" id="tabIn" onclick="setTab('in')">Swap In</button>
+        <button class="tab-btn" id="tabOut" onclick="setTab('out')">Swap Out</button>
+      </div>
+
+      <!-- Swap Card -->
+      <div class="swap-card">
+
+        <!-- Token selector + Priority -->
+        <div class="token-row">
+          <div class="token-pills">
+            <div class="token-pill active" id="pillUSDC" onclick="setToken('USDC')">
+              <div class="token-icon token-icon-usdc">$</div>
+              USDC
+            </div>
+            <div class="token-pill" id="pillUSDT" onclick="setToken('USDT')">
+              <div class="token-icon token-icon-usdt">₮</div>
+              USDT
+            </div>
+          </div>
+          <div class="priority-row">
+            <span class="priority-label">Priority</span>
+            <div class="priority-pills">
+              <button class="priority-pill active" onclick="setPriority(this)">Low</button>
+              <button class="priority-pill" onclick="setPriority(this)">High</button>
+              <button class="priority-pill" onclick="setPriority(this)">Turbo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- From Input -->
+        <div class="input-block" id="fromBlock">
+          <div class="input-block-header">
+            <span class="input-block-label" id="fromLabel">Deposit USDC</span>
+            <div class="input-block-balance">
+              <div class="balance-icon">◈</div>
+              <span id="fromBalance">0 USDC</span>
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="token-circle token-circle-usdc" id="fromIcon">$</div>
+            <input
+              class="input-field"
+              id="fromInput"
+              type="number"
+              placeholder="0.00"
+              min="0"
+              step="any"
+              oninput="handleInput()"
+            />
+            <button class="max-btn" onclick="setMax()">Max</button>
+          </div>
+        </div>
+
+        <!-- Swap Arrow -->
+        <div class="swap-arrow-wrap">
+          <button class="swap-arrow-btn" onclick="flipTab()" title="Flip">
+            ⇅
+          </button>
+        </div>
+
+        <!-- Receive Block -->
+        <div class="input-block" style="margin-top:8px">
+          <div class="receive-header">
+            <span class="receive-label" id="receiveLabel">Receive sgxUSD</span>
+            <div class="apy-badge">
+              <span class="apy-label">APY</span>
+              <div class="apy-pulse"></div>
+              <span class="apy-value">—%</span>
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="token-circle token-circle-sgx" id="toIcon">sgx</div>
+            <div class="receive-value" id="receiveValue">0</div>
+          </div>
+        </div>
+
+        <!-- Capacity -->
+        <div class="capacity-block" style="margin-top:8px">
+          <div class="capacity-row">
+            <span class="capacity-label">Available Capacity</span>
+            <span class="capacity-value" id="capacityVal">— sgxUSD</span>
+          </div>
+          <div class="capacity-bar-track">
+            <div class="capacity-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="meta-rows" style="margin-top:16px">
+          <div class="meta-row">
+            <span class="meta-key">
+              Exchange rate
+              <span id="navStatus" title="Loading" style="font-size:8px;margin-left:5px;color:var(--text3);transition:color 0.3s">●</span>
+            </span>
+            <span class="meta-val highlight" id="exchangeRate">⇌ —</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Network cost</span>
+            <span class="meta-val">0.000005 SOL</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">
+              Max priority fee
+              <span id="feeStatus" title="Loading" style="font-size:8px;margin-left:5px;color:var(--text3);transition:color 0.3s">●</span>
+            </span>
+            <span class="meta-val" id="priorityFeeVal">— SOL</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Swap fee</span>
+            <span class="meta-val">0.05%</span>
+          </div>
+        </div>
+
+        <!-- Swap Button -->
+        <button class="swap-btn swap-btn-in" id="swapBtn">
+          Swap In — Connect Wallet
+        </button>
+
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer-strip">
+        <strong>⚠ Experimental.</strong> sgxUSD is a vault token. NAV floats and is not guaranteed to appreciate.
+        Not a stablecoin. Not financial advice. Participate only with funds you can afford to lose.
+        <a href="index.html#risks" style="color:rgba(255,107,53,0.6);text-decoration:underline;margin-left:4px">Full risk disclosure →</a>
+      </div>
+
+      <!-- Footer -->
+      <div class="app-footer">
+        <span>GUTHIX Protocol</span>
+        <span style="color:var(--border2)">·</span>
+        <a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">Open Source</a>
+        <span style="color:var(--border2)">·</span>
+        <a href="index.html#risks">Risk Disclosure</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONFIG
+    // Replace HELIUS_API_KEY with your key from dashboard.helius.dev
+    // sgxUSD_MINT: update once deployed to mainnet
+    // ═══════════════════════════════════════════════════════════════════════
+    const CONFIG = {
+      HELIUS_API_KEY:  'YOUR_HELIUS_API_KEY',
+      HELIUS_RPC:      'https://mainnet.helius-rpc.com',
+      // sgxUSD mint address — replace with real address at deployment
+      // For devnet testing, swap HELIUS_RPC to https://devnet.helius-rpc.com
+      SGXUSD_MINT:     'SGXUSD_MINT_ADDRESS_PLACEHOLDER',
+      // Jupiter price API — no key required
+      JUPITER_PRICE:   'https://api.jup.ag/price/v2',
+      // USDC mint (mainnet)
+      USDC_MINT:       'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      // USDT mint (mainnet)
+      USDT_MINT:       'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+      // Refresh intervals (ms)
+      FEE_REFRESH_MS:  15_000,
+      NAV_REFRESH_MS:  30_000,
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════════════════
+    const state = {
+      tab:      'in',       // 'in' | 'out'
+      token:    'USDC',     // 'USDC' | 'USDT'
+      priority: 'Low',      // 'Low' | 'High' | 'Turbo'
+      // Live data — null = not yet loaded
+      navRate:  null,       // sgxUSD per USDC (from on-chain NAV or Jupiter)
+      fees: {
+        Low:   null,        // microlamports
+        High:  null,
+        Turbo: null,
+      },
+      navStale:  false,
+      feesStale: false,
+      navLastUpdated:  null,
+      feesLastUpdated: null,
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // UTILS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // microlamports → SOL string, 7 decimal places
+    function microlamportsToSol(micro) {
+      return (micro / 1_000_000_000).toFixed(7);
+    }
+
+    // Exponential backoff fetch — respects Helius 429 Retry-After header
+    async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const res = await fetch(url, options);
+          if (res.ok) return res;
+          if (res.status === 429) {
+            const retryAfter = res.headers.get('Retry-After');
+            const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+            await sleep(delay);
+            continue;
+          }
+          if (res.status >= 500) {
+            await sleep(Math.pow(2, attempt) * 1000);
+            continue;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        } catch (err) {
+          if (attempt === maxRetries - 1) throw err;
+          await sleep(Math.pow(2, attempt) * 1000);
+        }
+      }
+      throw new Error('Max retries exceeded');
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function setDataStatus(id, status) {
+      // status: 'loading' | 'live' | 'stale' | 'error'
+      const el = document.getElementById(id);
+      if (!el) return;
+      const colors = { loading: 'var(--text3)', live: 'var(--accent)', stale: 'var(--gold)', error: 'var(--warn)' };
+      const labels = { loading: '●', live: '●', stale: '◌', error: '✕' };
+      el.style.color = colors[status];
+      el.textContent = labels[status];
+      el.title = status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIORITY FEE FETCHER
+    // Uses Helius getPriorityFeeEstimate with the vault program account.
+    // Maps Low→min, High→medium, Turbo→veryHigh priority levels.
+    // Falls back to hardcoded safe defaults on error.
+    // ═══════════════════════════════════════════════════════════════════════
+    const FEE_FALLBACKS = { Low: 500, High: 1400, Turbo: 5000 }; // microlamports
+
+    async function fetchPriorityFees() {
+      setDataStatus('feeStatus', 'loading');
+      try {
+        const res = await fetchWithRetry(
+          `${CONFIG.HELIUS_RPC}/?api-key=${CONFIG.HELIUS_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 'guthix-fee-1',
+              method: 'getPriorityFeeEstimate',
+              params: [{
+                // Use vault program account as fee context once deployed.
+                // Falls back to a general estimate if placeholder is used.
+                accountKeys: [CONFIG.SGXUSD_MINT],
+                options: {
+                  includeAllPriorityFeeLevels: true,
+                },
+              }],
+            }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error.message);
+
+        const levels = data.result?.priorityFeeLevels;
+        if (!levels) throw new Error('No fee levels in response');
+
+        state.fees.Low   = Math.ceil(levels.min   ?? levels.low    ?? FEE_FALLBACKS.Low);
+        state.fees.High  = Math.ceil(levels.medium ?? levels.high   ?? FEE_FALLBACKS.High);
+        state.fees.Turbo = Math.ceil(levels.veryHigh ?? levels.unsafe_max ?? FEE_FALLBACKS.Turbo);
+
+        state.feesStale = false;
+        state.feesLastUpdated = Date.now();
+        setDataStatus('feeStatus', 'live');
+
+      } catch (err) {
+        console.warn('[GUTHIX] Priority fee fetch failed:', err.message);
+        // Only fall back if we have no data yet
+        if (state.fees.Low === null) {
+          state.fees.Low   = FEE_FALLBACKS.Low;
+          state.fees.High  = FEE_FALLBACKS.High;
+          state.fees.Turbo = FEE_FALLBACKS.Turbo;
+        }
+        state.feesStale = true;
+        setDataStatus('feeStatus', state.fees.Low === null ? 'error' : 'stale');
+      }
+
+      renderFee();
+    }
+
+    function renderFee() {
+      const micro = state.fees[state.priority];
+      if (micro === null) {
+        document.getElementById('priorityFeeVal').textContent = '— SOL';
+        return;
+      }
+      const sol = microlamportsToSol(micro);
+      const staleTag = state.feesStale ? ' (est.)' : '';
+      document.getElementById('priorityFeeVal').textContent = `${sol} SOL${staleTag}`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // NAV RATE FETCHER
+    // Pre-deployment: reads the sgxUSD/USDC price from Jupiter Price v2 API.
+    //   → Returns price of sgxUSD in USDC terms (i.e. NAV in USD).
+    //   → We invert: sgxUSD per USDC = 1 / price.
+    //
+    // Post-deployment: replace with a direct on-chain vault NAV read
+    //   via getAccountInfo on the vault state PDA.
+    //
+    // USDT rate: approximated as same as USDC (both peg to $1).
+    // Once pools are live, fetch each pair separately.
+    // ═══════════════════════════════════════════════════════════════════════
+    const NAV_FALLBACK = null; // no fallback — show clearly as unavailable pre-deploy
+
+    async function fetchNavRate() {
+      setDataStatus('navStatus', 'loading');
+
+      // Pre-deployment: sgxUSD mint is a placeholder, so Jupiter won't have price data.
+      // We detect the placeholder and show a clear "devnet / pre-launch" state.
+      if (CONFIG.SGXUSD_MINT === 'SGXUSD_MINT_ADDRESS_PLACEHOLDER') {
+        state.navRate = null;
+        state.navStale = false;
+        renderNavRate();
+        setDataStatus('navStatus', 'error');
+        document.getElementById('exchangeRate').textContent = '⇌ Pre-launch — NAV TBD';
+        document.querySelector('.apy-value').textContent = 'TBD';
+        return;
+      }
+
+      try {
+        // Jupiter Price API v2 — returns price of token in USDC
+        const url = `${CONFIG.JUPITER_PRICE}?ids=${CONFIG.SGXUSD_MINT}&vsToken=${CONFIG.USDC_MINT}`;
+        const res = await fetchWithRetry(url);
+        const data = await res.json();
+
+        const priceUsd = data?.data?.[CONFIG.SGXUSD_MINT]?.price;
+        if (!priceUsd || priceUsd <= 0) throw new Error('Invalid price from Jupiter');
+
+        // priceUsd = how many USDC per 1 sgxUSD (i.e. sgxUSD NAV in USD)
+        // navRate  = how many sgxUSD per 1 USDC = 1 / priceUsd
+        state.navRate = 1 / parseFloat(priceUsd);
+        state.navStale = false;
+        state.navLastUpdated = Date.now();
+        setDataStatus('navStatus', 'live');
+
+      } catch (err) {
+        console.warn('[GUTHIX] NAV rate fetch failed:', err.message);
+        state.navStale = true;
+        setDataStatus('navStatus', state.navRate === null ? 'error' : 'stale');
+      }
+
+      renderNavRate();
+    }
+
+    function renderNavRate() {
+      const rateEl  = document.getElementById('exchangeRate');
+      const apyEl   = document.querySelector('.apy-value');
+      const isIn    = state.tab === 'in';
+      const tok     = state.token;
+
+      if (state.navRate === null) {
+        rateEl.textContent = '⇌ Rate unavailable';
+        apyEl.textContent  = '—%';
+        return;
+      }
+
+      const stale = state.navStale ? ' ~' : '';
+      if (isIn) {
+        rateEl.textContent = `⇌${stale} 1 ${tok} = ${state.navRate.toFixed(6)} sgxUSD`;
+      } else {
+        rateEl.textContent = `⇌${stale} 1 sgxUSD = ${(1 / state.navRate).toFixed(6)} ${tok}`;
+      }
+
+      // Derived APY display from NAV (placeholder formula until real APY endpoint exists)
+      // Real APY = annualised NAV growth, read from vault state PDA post-deployment
+      apyEl.textContent = '—%';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // TAB / TOKEN / PRIORITY CONTROLS
+    // ═══════════════════════════════════════════════════════════════════════
+    function setTab(tab) {
+      state.tab = tab;
+      document.getElementById('tabSlider').classList.toggle('right', tab === 'out');
+      document.getElementById('tabIn').classList.toggle('active',  tab === 'in');
+      document.getElementById('tabOut').classList.toggle('active', tab === 'out');
+      updateUI();
+      clearInputs();
+    }
+
+    function flipTab() { setTab(state.tab === 'in' ? 'out' : 'in'); }
+
+    function setToken(token) {
+      state.token = token;
+      document.getElementById('pillUSDC').classList.toggle('active', token === 'USDC');
+      document.getElementById('pillUSDT').classList.toggle('active', token === 'USDT');
+      updateUI();
+      clearInputs();
+    }
+
+    function setPriority(el) {
+      document.querySelectorAll('.priority-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      state.priority = el.textContent.trim();
+      renderFee();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // UI RENDER
+    // ═══════════════════════════════════════════════════════════════════════
+    function updateUI() {
+      const isIn = state.tab === 'in';
+      const tok  = state.token;
+
+      document.getElementById('fromLabel').textContent    = isIn ? `Deposit ${tok}` : 'Return sgxUSD';
+      document.getElementById('receiveLabel').textContent = isIn ? 'Receive sgxUSD' : `Receive ${tok}`;
+      document.getElementById('fromBalance').textContent  = isIn ? `0 ${tok}` : '0 sgxUSD';
+
+      const fromIcon = document.getElementById('fromIcon');
+      const toIcon   = document.getElementById('toIcon');
+      if (isIn) {
+        fromIcon.className   = `token-circle token-circle-${tok.toLowerCase()}`;
+        fromIcon.textContent = tok === 'USDC' ? '$' : '₮';
+        toIcon.className     = 'token-circle token-circle-sgx';
+        toIcon.textContent   = 'sgx';
+      } else {
+        fromIcon.className   = 'token-circle token-circle-sgx';
+        fromIcon.textContent = 'sgx';
+        toIcon.className     = `token-circle token-circle-${tok.toLowerCase()}`;
+        toIcon.textContent   = tok === 'USDC' ? '$' : '₮';
+      }
+
+      document.getElementById('capacityVal').textContent = '— sgxUSD';
+
+      const btn = document.getElementById('swapBtn');
+      btn.className   = `swap-btn ${isIn ? 'swap-btn-in' : 'swap-btn-out'}`;
+      btn.textContent = isIn ? 'Swap In — Connect Wallet' : 'Swap Out — Connect Wallet';
+
+      document.getElementById('fromInput').placeholder = '0.00';
+      renderNavRate();
+      renderFee();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // INPUT HANDLING
+    // ═══════════════════════════════════════════════════════════════════════
+    function handleInput() {
+      const raw = parseFloat(document.getElementById('fromInput').value) || 0;
+      const receiveEl = document.getElementById('receiveValue');
+
+      if (state.navRate === null || raw <= 0) {
+        receiveEl.textContent = '0';
+        receiveEl.classList.remove('has-value');
+        document.getElementById('fromInput').classList.toggle('has-value', raw > 0);
+        return;
+      }
+
+      const out = state.tab === 'in'
+        ? raw * state.navRate
+        : raw * (1 / state.navRate);
+
+      receiveEl.textContent = out.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
+      });
+      receiveEl.classList.add('has-value');
+      document.getElementById('fromInput').classList.add('has-value');
+    }
+
+    function setMax() {
+      document.getElementById('fromInput').value = '1000.00';
+      document.getElementById('fromInput').classList.add('has-value');
+      handleInput();
+    }
+
+    function clearInputs() {
+      document.getElementById('fromInput').value = '';
+      document.getElementById('fromInput').classList.remove('has-value');
+      document.getElementById('receiveValue').textContent = '0';
+      document.getElementById('receiveValue').classList.remove('has-value');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // POLLING
+    // ═══════════════════════════════════════════════════════════════════════
+    function startPolling() {
+      // Initial fetch
+      fetchPriorityFees();
+      fetchNavRate();
+
+      // Recurring refresh
+      setInterval(fetchPriorityFees, CONFIG.FEE_REFRESH_MS);
+      setInterval(fetchNavRate,      CONFIG.NAV_REFRESH_MS);
+
+      // Mark data stale if tab regains focus after being hidden
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          const now = Date.now();
+          if (!state.feesLastUpdated || now - state.feesLastUpdated > CONFIG.FEE_REFRESH_MS) {
+            fetchPriorityFees();
+          }
+          if (!state.navLastUpdated || now - state.navLastUpdated > CONFIG.NAV_REFRESH_MS) {
+            fetchNavRate();
+          }
+        }
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // BOOT
+    // ═══════════════════════════════════════════════════════════════════════
+    updateUI();
+    startPolling();
+  </script>
+
+</body>
+</html>

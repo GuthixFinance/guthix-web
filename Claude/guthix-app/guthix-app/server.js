@@ -218,56 +218,6 @@ app.get('/api/dexscreener/pairs/solana/:address', (req, res) => {
   );
 });
 
-// ── Meteora DAMM v1 API — pool data (TVL, volume, fees) ──
-// The damm-api expects the list endpoint with ?address= filter; the singular
-// /pools/:address form rejects with "missing field `page`".
-async function fetchMeteoraPool(addr) {
-  const { status, body } = await httpRequest(
-    `https://damm-api.meteora.ag/pools?page=0&size=10&address=${addr}`,
-    { headers: { Accept: 'application/json' } }
-  );
-  if (status !== 200) throw new Error(`HTTP ${status}`);
-  const arr = JSON.parse(body);
-  const p = Array.isArray(arr) ? arr.find(x => x.pool_address === addr) : null;
-  if (!p) throw new Error('pool not found');
-  return {
-    address: addr,
-    name:    p.pool_name,
-    tvl:     parseFloat(p.pool_tvl ?? 0),
-    vol:     parseFloat(p.trading_volume ?? 0),
-    fee24h:  parseFloat(p.fee_volume ?? 0),
-    apr:     parseFloat(p.apr ?? 0),
-  };
-}
-
-app.get('/api/meteora/pools/:address', async (req, res) => {
-  try {
-    res.json(await fetchMeteoraPool(req.params.address));
-  } catch (err) {
-    res.status(502).json({ error: err.message });
-  }
-});
-
-// Batch: POST { addresses: [...] } → fetch all in parallel, return keyed by address
-app.post('/api/meteora/pools-batch', async (req, res) => {
-  const { addresses } = req.body;
-  if (!Array.isArray(addresses) || !addresses.length) {
-    return res.status(400).json({ error: 'addresses array required' });
-  }
-  const results = {};
-  await Promise.all(addresses.map(async (addr) => {
-    try {
-      const d = await fetchMeteoraPool(addr);
-      results[addr] = d;
-      console.log(`[meteora] ${addr.slice(0,8)}… TVL=$${d.tvl.toFixed(2)} vol24h=$${d.vol.toFixed(2)}`);
-    } catch (err) {
-      console.warn(`[meteora] ${addr.slice(0,8)}… error:`, err.message);
-      results[addr] = { error: err.message };
-    }
-  }));
-  res.json(results);
-});
-
 // ── Fallback ──
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

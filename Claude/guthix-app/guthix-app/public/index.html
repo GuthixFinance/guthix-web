@@ -1082,8 +1082,8 @@
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#yield">Yield Sources</a></li>
           <li><a href="#risks">Risks</a></li>
-          <li><a href="/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
-          <li><a href="https://github.com/GuthixFinance" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
         <a href="swap.html" class="nav-cta">App →</a>
       </div>
@@ -1117,7 +1117,7 @@
             <a href="swap.html" class="btn-primary">
               Launch App →
             </a>
-            <a href="/litepaper.md" target="_blank" rel="noopener" class="btn-secondary">
+            <a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener" class="btn-secondary">
               Read the Litepaper
             </a>
           </div>
@@ -1126,8 +1126,8 @@
         <div>
           <div class="hero-card">
             <div class="card-label">sgxUSD — Vault Token</div>
-            <div class="card-value" id="navCardValue">$—</div>
-            <div class="card-sub" id="navCardSub">Loading NAV…</div>
+            <div class="card-value">$1.000</div>
+            <div class="card-sub">↑ NAV appreciates over time</div>
             <div class="card-divider"></div>
             <div class="card-label" style="margin-bottom: 16px;">Yield Sources</div>
             <div class="yield-sources">
@@ -1311,7 +1311,7 @@
       <p class="section-body">
         Protocol-owned liquidity across eight stablecoin pairs — yield assets, cross-chain variants,
         and direct USDC/USDT entry and exit. Every swap fee flows back into sgxUSD value.
-        Pool details are available in the <a href="/litepaper.md" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">litepaper →</a>
+        Pool details are available in the <a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">litepaper →</a>
       </p>
     </div>
   </section>
@@ -1398,9 +1398,9 @@
       <div class="footer-inner">
         <div class="footer-logo">GUTHIX</div>
         <ul class="footer-links">
-          <li><a href="/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
-          <li><a href="https://github.com/GuthixFinance" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="https://github.com/GuthixFinance/guthix/blob/main/COMPLIANCE_PRINCIPLES.md" target="_blank" rel="noopener">Compliance</a></li>
+          <li><a href="https://guthix.finance/litepaper.md" target="_blank" rel="noopener">Litepaper</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/RedactedBuilder/guthix/blob/main/COMPLIANCE_PRINCIPLES.md" target="_blank" rel="noopener">Compliance</a></li>
           <li><a href="#risks">Risk Disclosure</a></li>
           <li><a href="https://x.com/GuthixFinance" target="_blank" rel="noopener">Twitter / X</a></li>
         </ul>
@@ -1425,34 +1425,6 @@
       document.querySelector('nav').style.borderBottomColor =
         window.scrollY > 40 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
     });
-
-    // sgxUSD NAV — DexScreener (deepest-liquidity pair across all sgxUSD pools)
-    const SGXUSD_MINT = 'sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n';
-    async function fetchSgxNav() {
-      const valEl = document.getElementById('navCardValue');
-      const subEl = document.getElementById('navCardSub');
-      try {
-        const r = await fetch(`/api/dexscreener/token-pairs/v1/solana/${SGXUSD_MINT}`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        const pairs = Array.isArray(data) ? data : (data.pairs ?? []);
-        if (!pairs.length) throw new Error('no pairs');
-        const best = pairs.reduce((a, b) =>
-          parseFloat(b.liquidity?.usd ?? 0) > parseFloat(a.liquidity?.usd ?? 0) ? b : a);
-        const price = parseFloat(best.priceUsd);
-        if (!price) throw new Error('no price');
-        valEl.textContent = `$${price.toFixed(4)}`;
-        const chg = parseFloat(best.priceChange?.h24 ?? 0);
-        const arrow = chg >= 0 ? '↑' : '↓';
-        subEl.textContent = `${arrow} ${Math.abs(chg).toFixed(2)}% · NAV appreciates over time`;
-      } catch (err) {
-        valEl.textContent = '$—';
-        subEl.textContent = '↑ NAV appreciates over time';
-        console.warn('[GUTHIX] NAV fetch failed:', err.message);
-      }
-    }
-    fetchSgxNav();
-    setInterval(fetchSgxNav, 30_000);
   </script>
 </body>
 </html>

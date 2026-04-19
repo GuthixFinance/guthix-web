@@ -222,10 +222,10 @@ app.get('/api/dexscreener/pairs/solana/:address', (req, res) => {
 // The damm-api expects the list endpoint with ?address= filter; the singular
 // /pools/:address form rejects with "missing field `page`".
 async function fetchMeteoraPool(addr) {
-  const { status, body } = await httpRequest(
-    `https://damm-api.meteora.ag/pools?page=0&size=10&address=${addr}`,
-    { headers: { Accept: 'application/json' } }
-  );
+  const url = `https://damm-api.meteora.ag/pools?page=0&size=10&address=${addr}`;
+  console.log(`[meteora] fetchMeteoraPool: ${url.slice(0, 100)}`);
+  const { status, body } = await httpRequest(url, { headers: { Accept: 'application/json' } });
+  console.log(`[meteora] response: HTTP ${status}, body starts: ${body.slice(0, 80)}`);
   if (status !== 200) throw new Error(`HTTP ${status}`);
   const arr = JSON.parse(body);
   const p = Array.isArray(arr) ? arr.find(x => x.pool_address === addr) : null;
@@ -239,6 +239,10 @@ async function fetchMeteoraPool(addr) {
     apr:     parseFloat(p.apr ?? 0),
   };
 }
+
+app.get('/api/test-meteora', (req, res) => {
+  res.json({ status: 'ok', msg: 'new route loaded' });
+});
 
 app.get('/api/meteora/pools/:address', async (req, res) => {
   try {
