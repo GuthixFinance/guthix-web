@@ -1,32 +1,37 @@
-# GUTHIX App — Deploy to Railway
+# GUTHIX Front-End
 
-**Live at:** [https://guthix-production.up.railway.app](https://wholesome-cat-production-ca09.up.railway.app/swap.html)
+Open-source front-end for the [Guthix Finance](https://guthix.finance) protocol. Anyone can fork this repo and run their own instance of the swap UI — it talks directly to public APIs (Jupiter, DexScreener, Helius RPC) with no proprietary back-end.
+
+**Official hosted instance:** [https://guthix.finance/swap.html](https://guthix.finance/swap.html)
 
 ---
 
-## Local dev
+## Run your own instance
+
+### Local dev
 
 ```bash
+git clone https://github.com/GuthixFinance/guthix-web.git
+cd guthix-web
 npm install
 npm start
 # open http://localhost:3000/swap.html
 ```
 
-## Deploy to Railway
+### Deploy to Railway (one-click)
 
-**First time:**
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/GuthixFinance/guthix-web)
+
+Or manually:
 ```bash
 railway login
 railway init
 railway up
 ```
 
-**Subsequent deploys:**
-```bash
-railway up
-```
+### Deploy anywhere Node.js runs
 
-Or via GitHub: railway.app → New Project → Deploy from GitHub repo → Railway auto-detects Node.
+The server is a plain Express app (`server.js`). Set `PORT` in your environment and run `node server.js`. Works on Render, Fly.io, Heroku, VPS, etc.
 
 ---
 
@@ -115,12 +120,12 @@ All three Meteora pools are **DAMM v1 ("Dynamic Pool · Stable · Permissionless
 | `guthix-core` vault program | 🔜 Q3 2026 — pending audit (OtterSec / Neodyme) |
 | USDY, bridge hub pools | 🔜 Full launch Q3 2026 |
 | Wormhole NTT (Base) | 🔜 Q4 2026 |
-| Custom domain `app.guthix.finance` | 🔜 CNAME → Railway not yet configured |
+| Custom domain `guthix.finance` | ✅ Live |
 
 ---
 
 ## Links
 
-- App: [https://guthix-production.up.railway.app/swap.html](https://wholesome-cat-production-ca09.up.railway.app/swap.html)
+- App: [https://guthix.finance/swap.html](https://guthix.finance/swap.html)
 - X: https://x.com/GuthixFinance
 - GitHub: https://github.com/GuthixFinance
