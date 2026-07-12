@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUTHIX — Protocol Stats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #070A10;
+      --bg2:      #0C111D;
+      --bg3:      #101624;
+      --surface:  #141C2C;
+      --surface2: #192236;
+      --surface3: #1E2940;
+      --border:   rgba(255,255,255,0.06);
+      --border2:  rgba(255,255,255,0.10);
+      --text:     #E8EDF5;
+      --text2:    #8A97B0;
+      --text3:    #4A566E;
+      --accent:   #4FFFA4;
+      --accent2:  #00D4FF;
+      --accent3:  #7B61FF;
+      --purple:   #7B61FF;
+      --gold:     #F0B240;
+      --warn:     #FF6B35;
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+      --nav-h: 64px;
+    }
+
+    html, body { background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
+    .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(rgba(79,255,164,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(79,255,164,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; animation: drift 20s ease-in-out infinite; }
+    .orb-1 { width: 600px; height: 600px; background: rgba(79,255,164,0.06); top: -200px; right: -100px; }
+    .orb-2 { width: 500px; height: 500px; background: rgba(0,212,255,0.05); bottom: 20%; left: -150px; animation-delay: -7s; }
+    @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-30px) scale(1.05); } 66% { transform: translate(-20px,20px) scale(0.95); } }
+
+    /* ── NAV ── */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--nav-h); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: rgba(7,10,16,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+    .nav-left { display: flex; align-items: center; gap: 24px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: 0.15em; color: var(--text); text-decoration: none; }
+    .nav-divider { width: 1px; height: 20px; background: var(--border2); }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-link { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); text-decoration: none; transition: color 0.2s; }
+    .nav-link:hover { color: var(--accent); }
+    .nav-link.active { color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-icon-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: var(--text2); font-size: 15px; text-decoration: none; }
+    .nav-icon-btn:hover { border-color: var(--border2); color: var(--text); }
+
+    .status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); display: inline-block; animation: glow-pulse 2s ease-in-out infinite; }
+    @keyframes glow-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(79,255,164,0.4); } 50% { box-shadow: 0 0 0 4px rgba(79,255,164,0); } }
+
+    /* ── SHELL ── */
+    .shell { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: calc(var(--nav-h) + 40px) 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+    .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.01em; }
+    .page-sub { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-top: 6px; }
+
+    /* ── HEADER STRIP ── */
+    .hstrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; }
+    .hcell { background: var(--surface); padding: 20px 22px; }
+    .hcell-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .hcell-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--text); letter-spacing: -0.02em; }
+    .hcell-value.cyan { color: var(--accent2); }
+    .hcell-value.accent { color: var(--accent); }
+    .hcell-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-top: 5px; }
+
+    /* ── PANEL ── */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; backdrop-filter: blur(8px); }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .panel-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); display: flex; align-items: center; gap: 8px; }
+    .panel-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: glow-pulse 2s ease-in-out infinite; }
+    .panel-link { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); text-decoration: none; transition: color 0.15s; }
+    .panel-link:hover { color: var(--accent); }
+    .panel-body { padding: 20px; }
+
+    /* ── NAV CHART ── */
+    .chart-wrap { position: relative; }
+    #navChart { display: block; width: 100%; height: 180px; }
+    .chart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; color: var(--text3); letter-spacing: 0.1em; }
+    .chart-meta { display: flex; justify-content: space-between; margin-top: 12px; font-family: var(--font-mono); font-size: 10px; color: var(--text3); letter-spacing: 0.08em; }
+
+    /* ── KEEPER STRIP ── */
+    .mstrip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; }
+    .mstrip-cell { background: var(--surface2); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+    .mstrip-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+    .mstrip-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; color: var(--text); }
+    .mstrip-val.accent { color: var(--accent); }
+    .keeper-note { margin-top: 14px; font-size: 12px; line-height: 1.7; color: var(--text2); font-weight: 300; }
+
+    /* ── POOL CARDS ── */
+    .pools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .pool-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; transition: border-color 0.15s; }
+    .pool-card:hover { border-color: var(--border2); }
+    .pool-card-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .pool-card-name a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border2); transition: color 0.15s, border-color 0.15s; }
+    .pool-card-name a:hover { color: var(--accent); border-color: var(--accent); }
+    .pool-card-tier { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+    .pool-stat { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+    .pool-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+    .pool-stat-value { font-family: var(--font-mono); font-size: 11px; color: var(--text); }
+    .pool-badge { display: inline-flex; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-top: 10px; }
+
+    .disclaimer-strip { padding: 12px 16px; background: rgba(255,107,53,0.05); border: 1px solid rgba(255,107,53,0.15); border-radius: 10px; font-size: 11px; line-height: 1.6; color: var(--text3); }
+    .disclaimer-strip strong { color: rgba(255,107,53,0.8); font-weight: 500; }
+
+    @media (max-width: 768px) {
+      .hstrip { grid-template-columns: repeat(2, 1fr); }
+      .mstrip-grid { grid-template-columns: repeat(2, 1fr); }
+      .pools-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+      .shell { padding: calc(var(--nav-h) + 24px) 16px 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav>
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">GUTHIX</a>
+      <div class="nav-divider"></div>
+      <div class="nav-links">
+        <a href="index.html"       class="nav-link">Info</a>
+        <a href="swap.html"        class="nav-link">App</a>
+        <a href="dashboard.html"   class="nav-link active">Stats</a>
+        <a href="index.html#risks" class="nav-link">Risks</a>
+        <a href="/litepaper.md" target="_blank" rel="noopener" class="nav-link">Litepaper</a>
+      </div>
+    </div>
+    <div class="nav-right">
+      <a href="https://github.com/GuthixFinance" target="_blank" rel="noopener" class="nav-icon-btn" title="GitHub">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="swap.html" class="nav-icon-btn" title="Open App" style="width:auto;padding:0 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);border-color:rgba(79,255,164,0.25)">App →</a>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <div>
+      <div class="page-title">Protocol Stats</div>
+      <div class="page-sub">Live on-chain metrics · Solana Mainnet</div>
+    </div>
+
+    <!-- HEADER STRIP -->
+    <div class="hstrip">
+      <div class="hcell">
+        <div class="hcell-label">sgxUSD NAV <span id="navDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+        <div class="hcell-value cyan" id="hNav">—</div>
+        <div class="hcell-sub">USDC per sgxUSD</div>
+      </div>
+      <div class="hcell">
+        <div class="hcell-label">Total Liquidity</div>
+        <div class="hcell-value" id="hTvl">—</div>
+        <div class="hcell-sub">across all venues</div>
+      </div>
+      <div class="hcell">
+        <div class="hcell-label">Volume 24h <span id="dsxDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+        <div class="hcell-value" id="hVol">—</div>
+        <div class="hcell-sub">all sgxUSD pairs</div>
+      </div>
+      <div class="hcell">
+        <div class="hcell-label">Circulating Supply</div>
+        <div class="hcell-value accent" id="hSupply">—</div>
+        <div class="hcell-sub">sgxUSD minted</div>
+      </div>
+    </div>
+
+    <!-- NAV HISTORY -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><div class="panel-dot"></div>NAV · 7 Day History</div>
+        <span class="panel-link" id="feedStatus">Data feed: —</span>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap">
+          <canvas id="navChart"></canvas>
+          <div class="chart-empty" id="chartEmpty">Collecting data points…</div>
+        </div>
+        <div class="chart-meta"><span id="chartLo">—</span><span id="chartRange">—</span><span id="chartHi">—</span></div>
+      </div>
+    </div>
+
+    <!-- KEEPER ACTIVITY -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><div class="panel-dot" style="background:var(--accent2)"></div>Automated Liquidity Keepers</div>
+        <span class="panel-link" id="keeperUpdated">—</span>
+      </div>
+      <div class="panel-body">
+        <div class="mstrip-grid">
+          <div class="mstrip-cell"><span class="mstrip-label">Active Keepers</span><span class="mstrip-val accent" id="kCount">—</span></div>
+          <div class="mstrip-cell"><span class="mstrip-label">Book Liquidity</span><span class="mstrip-val" id="kLiq">—</span></div>
+          <div class="mstrip-cell"><span class="mstrip-label">Txns 24h</span><span class="mstrip-val" id="kTx">—</span></div>
+          <div class="mstrip-cell"><span class="mstrip-label">Last Active</span><span class="mstrip-val" id="kLast" style="font-size:13px">—</span></div>
+        </div>
+        <div class="keeper-note">
+          Automated keepers maintain two-sided liquidity for sgxUSD across venues, around the clock.
+          Book liquidity is the total deposited on keeper-served order books. All activity settles
+          on-chain and is independently verifiable. Figures shown are protocol-level aggregates.
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKETS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><div class="panel-dot" style="background:var(--purple)"></div>Markets &amp; Venues</div>
+        <a href="https://dexscreener.com/solana/sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n" target="_blank" rel="noopener" class="panel-link">DexScreener ↗</a>
+      </div>
+      <div class="panel-body">
+        <div class="pools-grid">
+          <div class="pool-card" style="border-color:rgba(79,255,164,0.2)">
+            <div class="pool-card-name"><a href="https://manifest.trade/market/Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo" target="_blank" rel="noopener">sgxUSD / USDC ↗</a></div>
+            <div class="pool-card-tier">Primary Mint · Manifest CLOB</div>
+            <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value" style="color:var(--accent)">0.00%</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="pTvlManifest">—</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="pVolManifest">—</span></div>
+            <div class="pool-badge" style="background:rgba(0,212,255,0.06);color:var(--accent2);border:1px solid rgba(0,212,255,0.2)">Limit Orders</div>
+          </div>
+          <div class="pool-card">
+            <div class="pool-card-name"><a href="https://app.meteora.ag/pools/6c2DTHtCtS4YJ3cJYJNvj7qY9QQ8bqoUjGBZEgf9m889" target="_blank" rel="noopener">sgxUSD / USDT ↗</a></div>
+            <div class="pool-card-tier">Entry · Exit Ramp · Meteora</div>
+            <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.05%</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="pTvlUsdt">—</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="pVolUsdt">—</span></div>
+            <div class="pool-badge" style="background:rgba(79,255,164,0.08);color:var(--accent);border:1px solid rgba(79,255,164,0.2)">Primary AMM</div>
+          </div>
+          <div class="pool-card">
+            <div class="pool-card-name"><a href="https://app.meteora.ag/pools/6FGtEcUT3UcJeU993oNKBYuYg1Uj9NeXNDzcpsobhxwy" target="_blank" rel="noopener">sgxUSD / sUSDe ↗</a></div>
+            <div class="pool-card-tier">Yield Engine · Meteora</div>
+            <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.10%</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="pTvlSusde">—</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="pVolSusde">—</span></div>
+            <div class="pool-badge" style="background:rgba(0,212,255,0.06);color:var(--accent2);border:1px solid rgba(0,212,255,0.2)">Ethena</div>
+          </div>
+          <div class="pool-card">
+            <div class="pool-card-name"><a href="https://app.meteora.ag/pools/3SjZNbuyzL5tow1LXf7mHYutnWdpboq97Z1RSfwpoVcT" target="_blank" rel="noopener">sgxUSD / syrupUSDC ↗</a></div>
+            <div class="pool-card-tier">Yield Engine · Meteora</div>
+            <div class="pool-stat"><span class="pool-stat-label">Fee</span><span class="pool-stat-value">0.10%</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">TVL</span><span class="pool-stat-value" id="pTvlSyrup">—</span></div>
+            <div class="pool-stat"><span class="pool-stat-label">Vol 24h</span><span class="pool-stat-value" id="pVolSyrup">—</span></div>
+            <div class="pool-badge" style="background:rgba(123,97,255,0.08);color:var(--purple);border:1px solid rgba(123,97,255,0.2)">Maple</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer-strip">
+      <strong>⚠ Experimental.</strong> sgxUSD NAV floats and is not guaranteed to appreciate. Not a stablecoin. Not financial advice.
+      <a href="index.html#risks" style="color:rgba(255,107,53,0.6);text-decoration:underline;margin-left:4px">Full risk disclosure →</a>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      SGXUSD_MINT: 'sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n',
+      SGXUSD_DECIMALS: 9,
+      USDC_MINT: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      METEORA_POOL_USDT:      '6c2DTHtCtS4YJ3cJYJNvj7qY9QQ8bqoUjGBZEgf9m889',
+      METEORA_POOL_SUSDE:     '6FGtEcUT3UcJeU993oNKBYuYg1Uj9NeXNDzcpsobhxwy',
+      METEORA_POOL_SYRUPUSDC: '3SjZNbuyzL5tow1LXf7mHYutnWdpboq97Z1RSfwpoVcT',
+      MANIFEST_MARKET:        'Cud6C8uE39bzNkHjQ9VZTkovuzjTcy5496s6neHoLvbo',
+      MANIFEST_VAULT:         'ALGCuBDd7SLJsJyA8k9NPhjfduBMnAgZoYMUUjuR2x7v',
+    };
+
+    function setDot(id, status) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const map = { loading:['var(--text3)','●'], live:['var(--accent)','●'], stale:['var(--gold)','◌'], error:['var(--warn)','✕'] };
+      el.style.color = map[status][0]; el.textContent = map[status][1];
+    }
+    function fmtUsd(n) { if (n==null||isNaN(n)) return '—'; if (n>=1e6) return `$${(n/1e6).toFixed(2)}M`; if (n>=1e3) return `$${(n/1e3).toFixed(1)}K`; return `$${n.toFixed(2)}`; }
+    function setText(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+
+    // ── NAV (spot) ──
+    async function fetchNav() {
+      setDot('navDot','loading');
+      try {
+        const res = await fetch(`/api/jupiter/quote?inputMint=${CONFIG.USDC_MINT}&outputMint=${CONFIG.SGXUSD_MINT}&amount=1000000&slippageBps=50`);
+        const data = await res.json();
+        if (!data.outAmount) throw new Error(data.error ?? 'No route');
+        const out = parseInt(data.outAmount) / Math.pow(10, CONFIG.SGXUSD_DECIMALS);
+        setText('hNav', `$${(1/out).toFixed(4)}`);
+        setDot('navDot','live');
+      } catch (e) { setDot('navDot','error'); }
+    }
+
+    // ── Pools + volume (DexScreener + Meteora + Manifest vault) ──
+    async function fetchMarkets() {
+      setDot('dsxDot','loading');
+      const ids = {
+        [CONFIG.METEORA_POOL_USDT]:      ['pTvlUsdt','pVolUsdt'],
+        [CONFIG.METEORA_POOL_SUSDE]:     ['pTvlSusde','pVolSusde'],
+        [CONFIG.METEORA_POOL_SYRUPUSDC]: ['pTvlSyrup','pVolSyrup'],
+      };
+      let totTvl = 0, totVol = 0;
+      try {
+        const res = await fetch(`/api/dexscreener/token-pairs/v1/solana/${CONFIG.SGXUSD_MINT}`);
+        const data = await res.json();
+        const pairs = Array.isArray(data) ? data : (data.pairs ?? []);
+        const byAddr = {};
+        pairs.forEach(p => { if (p.pairAddress) byAddr[p.pairAddress.toLowerCase()] = p; });
+        for (const [addr, [tvlId, volId]] of Object.entries(ids)) {
+          const p = byAddr[addr.toLowerCase()];
+          if (!p) continue;
+          const tvl = parseFloat(p.liquidity?.usd ?? 0), vol = parseFloat(p.volume?.h24 ?? 0);
+          setText(tvlId, fmtUsd(tvl)); setText(volId, fmtUsd(vol));
+          totTvl += tvl; totVol += vol;
+        }
+        // circulating supply from best pair's FDV if present
+        const best = pairs.length ? pairs.reduce((a,b)=>(parseFloat(b.liquidity?.usd??0)>parseFloat(a.liquidity?.usd??0))?b:a) : null;
+        const mkt = best?.pairAddress ? byAddr[CONFIG.MANIFEST_MARKET.toLowerCase()] : null;
+        if (mkt) {
+          setText('pVolManifest', fmtUsd(parseFloat(mkt.volume?.h24 ?? 0)));
+          totVol += parseFloat(mkt.volume?.h24 ?? 0);
+        }
+        setDot('dsxDot','live');
+      } catch (e) { setDot('dsxDot','error'); }
+      try {
+        const res = await fetch('/api/rpc/token-balance', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ account: CONFIG.MANIFEST_VAULT }) });
+        const d = await res.json();
+        if (d.amount != null) { setText('pTvlManifest', fmtUsd(parseFloat(d.amount))); totTvl += parseFloat(d.amount); }
+      } catch (_) {}
+      setText('hTvl', fmtUsd(totTvl));
+      setText('hVol', fmtUsd(totVol));
+    }
+
+    // ── Circulating supply via public RPC getTokenSupply through DexScreener FDV fallback ──
+    async function fetchCirculating() {
+      try {
+        const res = await fetch(`/api/dexscreener/pairs/solana/${CONFIG.METEORA_POOL_USDT}`);
+        const data = await res.json();
+        const p = data.pair ?? data.pairs?.[0];
+        const fdv = parseFloat(p?.fdv ?? 0), price = parseFloat(p?.priceUsd ?? 0);
+        if (fdv > 0 && price > 0) setText('hSupply', (fdv / price).toLocaleString('en-US', { maximumFractionDigits: 0 }));
+      } catch (_) {}
+    }
+
+    // ── Keeper stats ──
+    async function fetchKeepers() {
+      try {
+        const res = await fetch('/api/keeper-stats');
+        const d = await res.json();
+        if (d.error) throw new Error(d.error);
+        setText('kCount', d.keepers ?? '—');
+        setText('kLiq', d.liquidityUsd != null ? fmtUsd(d.liquidityUsd) : '—');
+        setText('kTx', d.txns24h ?? '—');
+        if (d.lastActive) {
+          const mins = Math.round((Date.now() - new Date(d.lastActive).getTime()) / 60000);
+          setText('kLast', mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`);
+        }
+        setText('keeperUpdated', 'Updated just now');
+      } catch (e) { setText('keeperUpdated', 'Unavailable'); }
+    }
+
+    // ── NAV history chart (canvas, no library) ──
+    async function fetchNavHistory() {
+      try {
+        const res = await fetch('/api/nav-history');
+        const { points, oracleHealthy } = await res.json();
+        setText('feedStatus', `Data feed: ${oracleHealthy === false ? 'degraded' : 'live'}`);
+        drawChart(points || []);
+      } catch (e) { setText('feedStatus', 'Data feed: —'); }
+    }
+
+    function drawChart(pts) {
+      const canvas = document.getElementById('navChart');
+      const empty = document.getElementById('chartEmpty');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth, h = 180;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+      if (pts.length < 2) { empty.style.display = 'flex'; return; }
+      empty.style.display = 'none';
+
+      const navs = pts.map(p => p.nav);
+      let lo = Math.min(...navs), hi = Math.max(...navs);
+      if (hi - lo < 0.0005) { const mid = (hi + lo) / 2; lo = mid - 0.00025; hi = mid + 0.00025; }
+      const pad = 12;
+      const x = i => pad + (i / (pts.length - 1)) * (w - pad * 2);
+      const y = v => h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2);
+
+      // gradient fill
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(0,212,255,0.18)');
+      grad.addColorStop(1, 'rgba(0,212,255,0)');
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(x(i), y(p.nav)) : ctx.lineTo(x(i), y(p.nav)));
+      ctx.lineTo(x(pts.length - 1), h); ctx.lineTo(x(0), h); ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
+
+      // line
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(x(i), y(p.nav)) : ctx.lineTo(x(i), y(p.nav)));
+      ctx.strokeStyle = '#00D4FF'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // last point
+      const last = pts[pts.length - 1];
+      ctx.beginPath(); ctx.arc(x(pts.length - 1), y(last.nav), 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#00D4FF'; ctx.fill();
+
+      setText('chartLo', `Low $${lo.toFixed(4)}`);
+      setText('chartHi', `High $${hi.toFixed(4)}`);
+      const spanH = (pts[pts.length-1].t - pts[0].t) / 3600000;
+      setText('chartRange', spanH < 48 ? `${Math.max(1, Math.round(spanH))}h of data` : `${Math.round(spanH/24)}d of data`);
+    }
+
+    function refreshAll() { fetchNav(); fetchMarkets(); fetchCirculating(); fetchKeepers(); fetchNavHistory(); }
+    refreshAll();
+    setInterval(fetchNav, 30_000);
+    setInterval(fetchMarkets, 60_000);
+    setInterval(fetchKeepers, 120_000);
+    setInterval(fetchNavHistory, 300_000);
+    window.addEventListener('resize', () => fetchNavHistory());
+  </script>
+</body>
+</html>

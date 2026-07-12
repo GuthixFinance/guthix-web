@@ -273,6 +273,130 @@ app.post('/api/meteora/pools-batch', async (req, res) => {
   res.json(results);
 });
 
+// ── Keeper stats — aggregate-only, no addresses leave the server ──
+// KEEPER_WALLETS: comma-separated "label:pubkey" or bare pubkeys (same format fuel-station uses).
+const KEEPER_WALLETS = (process.env.KEEPER_WALLETS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(s => (s.includes(':') ? s.split(':')[1] : s));
+
+const STABLE_MINTS = new Set([
+  'sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n',  // sgxUSD
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT
+  'AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj', // syrupUSDC
+  'upPyusDv3nEtrUE6ESsX2j6BiZhwBjzogoirFenYg6m',  // upPYUSD
+]);
+
+async function heliusRpc(method, params) {
+  const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method, params });
+  const { body: rb } = await httpRequest(HELIUS_RPC, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    body,
+  });
+  const data = JSON.parse(rb);
+  if (data.error) throw new Error(data.error.message || 'RPC error');
+  return data.result;
+}
+
+// Venue vault token accounts holding keeper-deposited inventory (seats + open orders).
+// Manifest vault PDA = ['vault', market, mint]; pass the derived SPL token accounts here.
+const KEEPER_VAULTS = (process.env.KEEPER_VAULTS || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+let keeperStatsCache = { at: 0, data: null };
+app.get('/api/keeper-stats', async (req, res) => {
+  if (!KEEPER_WALLETS.length) return res.json({ keepers: 0, liquidityUsd: null, txns24h: null, lastActive: null });
+  if (Date.now() - keeperStatsCache.at < 60_000 && keeperStatsCache.data) return res.json(keeperStatsCache.data);
+  try {
+    const cutoff24h = Math.floor(Date.now() / 1000) - 86_400;
+    const cutoff7d  = Math.floor(Date.now() / 1000) - 7 * 86_400;
+    let liquidityUsd = 0, txns24h = 0, lastActive = null, active = 0;
+    await Promise.all(KEEPER_WALLETS.map(async (w) => {
+      const [tokens, sigs] = await Promise.all([
+        heliusRpc('getTokenAccountsByOwner', [w, { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' }, { encoding: 'jsonParsed' }]),
+        heliusRpc('getSignaturesForAddress', [w, { limit: 200 }]),
+      ]);
+      let held = 0;
+      for (const a of tokens.value) {
+        const info = a.account.data.parsed.info;
+        if (STABLE_MINTS.has(info.mint)) held += parseFloat(info.tokenAmount.uiAmountString || 0);
+      }
+      liquidityUsd += held;
+      txns24h += sigs.filter(s => (s.blockTime || 0) >= cutoff24h).length;
+      const newest = sigs[0]?.blockTime || null;
+      if (newest && (!lastActive || newest > lastActive)) lastActive = newest;
+      if (newest && newest >= cutoff7d) active++;
+    }));
+    // On-venue inventory: keeper deposits live in the venue vault token accounts, not the wallets.
+    await Promise.all(KEEPER_VAULTS.map(async (v) => {
+      const r = await heliusRpc('getTokenAccountBalance', [v, { commitment: 'confirmed' }]);
+      liquidityUsd += parseFloat(r?.value?.uiAmountString || 0);
+    }));
+    const data = {
+      keepers: active,
+      liquidityUsd: Math.round(liquidityUsd),
+      txns24h,
+      lastActive: lastActive ? new Date(lastActive * 1000).toISOString() : null,
+    };
+    keeperStatsCache = { at: Date.now(), data };
+    res.json(data);
+  } catch (err) {
+    console.error('[keeper-stats] error:', err.message);
+    if (keeperStatsCache.data) return res.json(keeperStatsCache.data);
+    res.status(502).json({ error: 'unavailable' });
+  }
+});
+
+// ── NAV history — polls the price oracle (or Jupiter fallback) every 5 min ──
+const ORACLE_URL   = process.env.ORACLE_URL || '';
+const ORACLE_TOKEN = process.env.ORACLE_TOKEN || '';
+const NAV_HISTORY_MAX = 2016; // 7 days at 5-min intervals
+const navHistory = [];
+let oracleHealthy = null;
+
+async function pollNav() {
+  try {
+    let nav = null;
+    if (ORACLE_URL) {
+      try {
+        const headers = ORACLE_TOKEN ? { Authorization: `Bearer ${ORACLE_TOKEN}` } : {};
+        const { status, body } = await httpRequest(`${ORACLE_URL.replace(/\/$/, '')}/price`, { headers });
+        if (status === 200) {
+          const d = JSON.parse(body);
+          if (d.sgx_usd && !d.stale) nav = d.sgx_usd;
+          oracleHealthy = !d.stale;
+        } else {
+          oracleHealthy = false;
+        }
+      } catch (_) { oracleHealthy = false; }
+    }
+    if (nav == null) {
+      // Fallback: Jupiter quote 1 USDC → sgxUSD
+      const qs = 'inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n&amount=1000000&slippageBps=50';
+      const { status, body } = await httpRequest(`https://lite-api.jup.ag/swap/v1/quote?${qs}`, { headers: { Accept: 'application/json' } });
+      if (status === 200) {
+        const d = JSON.parse(body);
+        if (d.outAmount) nav = 1 / (parseInt(d.outAmount) / 1e9);
+      }
+    }
+    if (nav != null && Number.isFinite(nav)) {
+      navHistory.push({ t: Date.now(), nav: parseFloat(nav.toFixed(6)) });
+      if (navHistory.length > NAV_HISTORY_MAX) navHistory.shift();
+    }
+  } catch (err) {
+    console.warn('[nav-poll] error:', err.message);
+  }
+}
+pollNav();
+setInterval(pollNav, 5 * 60_000);
+
+app.get('/api/nav-history', (req, res) => {
+  res.json({ points: navHistory, oracleHealthy });
+});
+
 // ── Fallback ──
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
