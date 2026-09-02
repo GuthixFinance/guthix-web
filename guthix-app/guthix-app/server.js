@@ -129,7 +129,7 @@ app.post('/api/jupiter/swap', async (req, res) => {
 // ── Pool TVL via Helius RPC ──
 // Each Meteora DAMM v1 pool owns exactly two SPL token accounts (the reserve vaults).
 // getTokenAccountsByOwner returns both, giving us live token balances = TVL for stablecoin pools.
-const HELIUS_RPC = 'https://mainnet.helius-rpc.com/?api-key=6df6c556-796b-48f1-a24a-21ffe0995f66';
+const HELIUS_RPC = 'https://api.mainnet-beta.solana.com' // keyless: an API key must never ship to a browser;
 
 app.post('/api/rpc/pool-tvl', async (req, res) => {
   const { pools } = req.body; // array of pool addresses

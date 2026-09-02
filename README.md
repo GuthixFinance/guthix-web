@@ -1,6 +1,6 @@
 # GUTHIX Front-End
 
-Open-source front-end for the [Guthix Finance](https://guthix.finance) protocol. Anyone can fork this repo and run their own instance of the swap UI — it talks directly to public APIs (Jupiter, DexScreener, Helius RPC) with no proprietary back-end.
+Open-source front-end for the [Guthix Finance](https://guthix.finance) protocol. Anyone can fork this repo and run their own instance of the swap UI — it talks to public APIs (Jupiter, DexScreener) and a Solana RPC endpoint, with no proprietary back-end. It runs with no configuration at all; see [Configuration](#configuration) to point it at your own RPC provider.
 
 **Official hosted instance:** [https://guthix.finance/swap.html](https://guthix.finance/swap.html)
 
@@ -32,6 +32,28 @@ railway up
 ### Deploy anywhere Node.js runs
 
 The server is a plain Express app (`server.js`). Set `PORT` in your environment and run `node server.js`. Works on Render, Fly.io, Heroku, VPS, etc.
+
+---
+
+## Configuration
+
+Copy `.env.example` and fill in what you need. **Everything is optional** — with no configuration at all the app runs entirely on the public Solana RPC endpoint.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `HELIUS_RPC_URL` | *(unset)* | Full Helius URL **including the key**. Unset = public endpoint only. |
+| `PUBLIC_RPC_URL` | `https://api.mainnet-beta.solana.com` | Where RPC goes when Helius is unset or over budget. |
+| `HELIUS_MONTHLY_CREDIT_BUDGET` | `200000` | Hard monthly credit cap. Over budget the app degrades to `PUBLIC_RPC_URL` — it never errors. |
+| `EVENTS_DATABASE_URL` | *(unset)* | Postgres for persisting credit spend. Unset = the cap still binds, but only in-process. |
+| `PUBLIC_RPC_EXTRA_ADDRESSES` | *(unset)* | Extra addresses the public `/api/rpc/*` routes may be asked about. |
+
+`GET /api/rpc-credits` reports current spend against the budget.
+
+### A note on the RPC key
+
+**The API key stays on the server.** `public/swap.html` is served to every visitor, so it contains no credential — everything that costs money goes through the `/api/rpc/*` routes, which are cached, restricted to a fixed address allowlist, and metered against the budget above. The browser talks to a public endpoint only, and only for the visitor's own wallet balances and for broadcasting their own signed transaction.
+
+If you fork this, keep it that way. A key in client-side JS is a key you have given away.
 
 ---
 
@@ -102,8 +124,8 @@ All three Meteora pools are **DAMM v1 ("Dynamic Pool · Stable · Permissionless
 | `fetchNavRate` | 30s | Jupiter quote: 1 USDC → sgxUSD |
 | `fetchDexScreener` | 30s | Price, volume, liquidity |
 | `fetchPoolAPR` | 60s | Re-derives APR from cached state; no HTTP |
-| `fetchPoolTVL` | 120s | Helius RPC for all 4 venues |
-| `fetchTokenSupply` | 120s | Helius RPC for circulating supply |
+| `fetchPoolTVL` | 600s | `/api/rpc/*` for all 4 venues (matches the server cache TTL) |
+| `fetchTokenSupply` | 600s | `/api/rpc/token-supply` for circulating supply |
 
 ---
 

@@ -684,7 +684,11 @@
 
   <script>
     const CONFIG = {
-      RPC:             'https://mainnet.helius-rpc.com/?api-key=6df6c556-796b-48f1-a24a-21ffe0995f66',
+      // Keyless by design — this file is served to every visitor, so it must never contain a
+      // credential. Anything that costs money goes through /api/rpc/* (cached, allowlisted,
+      // metered server-side). What is left here is a public endpoint, used only for the
+      // visitor's own wallet reads and for broadcasting their own signed transaction.
+      PUBLIC_RPC:      'https://api.mainnet-beta.solana.com',
       SGXUSD_MINT:     'sgx1cN3SJTtobeXPcCvYa4kc85HVsKQLa7mQhsXma9n',
       SGXUSD_DECIMALS: 9,
       JUPITER_QUOTE:   '/api/jupiter/quote',
@@ -807,7 +811,7 @@
       else                           { if (rateEl) rateEl.textContent=`Enter amount for ${tok.symbol} rate`; }
     }
 
-    // ── POOL TVL — Helius RPC (getTokenAccountsByOwner) ──
+    // ── POOL TVL — via the server's /api/rpc/* routes ──
     // Each DAMM v1 pool owns exactly two SPL token accounts (reserve vaults).
     // Sum of both balances = TVL. Works immediately without DexScreener indexing.
     // All three pools are stablecoin pairs so token amount ≈ USD value.
@@ -1217,8 +1221,8 @@
       if (!state.wallet){state.balances={};updateUI();renderVaultStats();renderStatusBar();return;}
       try {
         const [tR,sR]=await Promise.all([
-          fetch(CONFIG.RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'getTokenAccountsByOwner',params:[state.wallet,{programId:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'},{encoding:'jsonParsed'}]})}),
-          fetch(CONFIG.RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:2,method:'getBalance',params:[state.wallet]})}),
+          fetch(CONFIG.PUBLIC_RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'getTokenAccountsByOwner',params:[state.wallet,{programId:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'},{encoding:'jsonParsed'}]})}),
+          fetch(CONFIG.PUBLIC_RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:2,method:'getBalance',params:[state.wallet]})}),
         ]);
         const tD=await tR.json(),sD=await sR.json();
         state.balances={};
@@ -1250,7 +1254,7 @@
         const sD=await sR.json(); if(sD.error)throw new Error(sD.error); if(!sD.swapTransaction)throw new Error('No transaction returned');
         showToast('pending','Awaiting wallet approval…','Please confirm the transaction in your wallet.');
         const bytes=Uint8Array.from(atob(sD.swapTransaction),c=>c.charCodeAt(0));
-        const conn=new solanaWeb3.Connection(CONFIG.RPC,'confirmed');
+        const conn=new solanaWeb3.Connection(CONFIG.PUBLIC_RPC,'confirmed');
         let tx; try{tx=solanaWeb3.VersionedTransaction.deserialize(bytes);}catch(_){tx=solanaWeb3.Transaction.from(bytes);}
         if (!state.walletProvider.signTransaction) throw new Error('Wallet does not support signTransaction');
         const signed=await state.walletProvider.signTransaction(tx);
@@ -1310,16 +1314,17 @@
     // ── TOKEN SUPPLY (Vault Capacity) ──
     async function fetchTokenSupply() {
       try {
-        const res = await fetch(CONFIG.RPC, {
+        // Server route, not a direct RPC call: this ran every 2 minutes in every open tab,
+        // straight to a paid endpoint with the key in the page source. Behind /api/rpc/* it is
+        // one cached call per TTL window no matter how many visitors are watching.
+        const res = await fetch('/api/rpc/token-supply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0', id: 1, method: 'getTokenSupply',
-            params: [CONFIG.SGXUSD_MINT, { commitment: 'confirmed' }]
-          })
+          body: JSON.stringify({ mint: CONFIG.SGXUSD_MINT }),
         });
-        const { result } = await res.json();
-        const supply = parseFloat(result?.value?.uiAmount ?? 0);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { supply: rawSupply } = await res.json();
+        const supply = parseFloat(rawSupply ?? 0);
         const el = document.getElementById('capacityVal');
         if (el && supply > 0) {
           el.textContent = fmtUsd(supply).replace('$','') + ' sgxUSD';
@@ -1336,9 +1341,12 @@
       fetchNavRate(); fetchPoolTVL(); fetchDexScreener(); fetchTokenSupply();
       setInterval(fetchNavRate,    CONFIG.NAV_REFRESH_MS);
       setInterval(fetchPoolAPR,    CONFIG.APR_REFRESH_MS);
-      setInterval(fetchPoolTVL,    120_000); // TVL from RPC every 2 min
+      // Matched to the server's RPC_CACHE_MS (10 min). Polling faster than the cache TTL only
+      // re-serves the same cached bytes; polling slower wastes freshness. TVL and supply both
+      // move on the order of minutes, so nothing visible changes.
+      setInterval(fetchPoolTVL,    600_000); // TVL via server route every 10 min
       setInterval(fetchDexScreener,CONFIG.DSX_REFRESH_MS);
-      setInterval(fetchTokenSupply, 120_000); // every 2 min — supply changes slowly
+      setInterval(fetchTokenSupply, 600_000); // supply changes slowly
       document.addEventListener('visibilitychange',()=>{
         if (document.visibilityState==='visible'){
           const now=Date.now();
