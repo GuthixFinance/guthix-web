@@ -381,7 +381,7 @@
       </div>
     </div>
     <div class="nav-right">
-      <div class="nav-apy"><span class="status-dot"></span> NAV floor +—</div>
+      <div class="nav-apy"><span class="status-dot"></span> NAV vAPR —%</div>
       <a href="https://github.com/GuthixFinance" target="_blank" rel="noopener" class="nav-icon-btn" title="GitHub">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
@@ -448,7 +448,7 @@
           </div>
           <div class="vault-stat">
             <div class="vault-stat-label">NAV floor growth
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-bubble">Realized appreciation of the modeled NAV floor since genesis (2026-06-22), which follows a +28%/yr compounding schedule. The floor is a sell-floor mechanism, not a promised return. Meteora pool fee APR is shown separately below.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-bubble">Realized appreciation of the modeled NAV floor since genesis (2026-06-22), which follows a +28%/yr compounding schedule. The floor is a sell-floor mechanism, not a promised return.</span></span>
             </div>
             <div class="vault-stat-value accent" id="statApy">—%</div>
             <div class="vault-stat-sub" id="statApySub">Loading…</div>
@@ -579,12 +579,12 @@
               <div class="npc">
                 <div class="npc-label">NAV Floor <span id="navPriceDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
                 <div class="npc-value cyan" id="npcNavPrice">—</div>
-                <div class="npc-sub">modeled sell floor · +28%/yr schedule</div>
+                <div class="npc-sub">&nbsp;</div>
               </div>
               <div class="npc">
-                <div class="npc-label">Market vs NAV <span id="dsxDot2" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+                <div class="npc-label">Discount <span id="dsxDot2" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
                 <div class="npc-value" id="npcMktVsNav">—</div>
-                <div class="npc-sub">live market price vs floor</div>
+                <div class="npc-sub">market price vs NAV floor</div>
               </div>
               <div class="npc">
                 <div class="npc-label">Exchange Rate</div>
@@ -793,6 +793,14 @@
     }
     // Realized appreciation of the floor since genesis — a historical, dated figure.
     function navGrowthPct(at = Date.now()) { return (navFloorUsd(at) / CONFIG.NAV_FLOOR_BASE - 1) * 100; }
+    // Variable APR implied by the NAV gained so far: annualize the realized appreciation over
+    // the elapsed holding period. Backward-looking and floats with the NAV curve — not a
+    // promised rate. Falls back to the schedule rate until a meaningful window has elapsed.
+    function navVaprPct(at = Date.now()) {
+      const yrs = (at - CONFIG.NAV_FLOOR_GENESIS_MS) / (365.25 * 864e5);
+      if (yrs < 1 / 365) return CONFIG.NAV_FLOOR_APR * 100;
+      return (Math.pow(navFloorUsd(at) / CONFIG.NAV_FLOOR_BASE, 1 / yrs) - 1) * 100;
+    }
     const NAV_GENESIS_LABEL = new Date(CONFIG.NAV_FLOOR_GENESIS_MS)
       .toLocaleDateString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
@@ -824,13 +832,14 @@
       if (navEl)  navEl.textContent  = `$${floor.toFixed(4)}`;
       if (npcNav) npcNav.textContent = `$${floor.toFixed(4)}`;
 
-      // Market price (Jupiter quote) and its discount / premium to the floor.
+      // Discount of the live market price to the NAV floor. Positive = trading below floor
+      // (a discount); negative = trading at a premium.
       const mkt = state.navPrice;
       if (npcMkt) {
         if (mkt != null) {
-          const d = (mkt / floor - 1) * 100;
-          npcMkt.textContent = `${d >= 0 ? '+' : ''}${d.toFixed(2)}%`;
-          npcMkt.style.color = d >= 0 ? 'var(--accent)' : 'var(--gold)';
+          const disc = (1 - mkt / floor) * 100; // >0 = below floor (discount), <0 = premium
+          npcMkt.textContent = `${disc.toFixed(2)}%`;
+          npcMkt.style.color = disc > 0.005 ? 'var(--gold)' : disc < -0.005 ? 'var(--accent)' : '';
         } else { npcMkt.textContent = '—'; npcMkt.style.color = ''; }
       }
 
@@ -1062,7 +1071,7 @@
       set('sbarBalance', bal!=null?`${fmtBal(bal,2)} sgxUSD`:(state.wallet?'0 sgxUSD':'—'));
       setDot('navBarDot', state.navStale?'stale':(state.navPrice?'live':'loading'));
       const apy=document.querySelector('.nav-apy');
-      if (apy) apy.innerHTML=`<span class="status-dot"></span> NAV floor +${navGrowthPct().toFixed(1)}% since ${NAV_GENESIS_LABEL}`;
+      if (apy) apy.innerHTML=`<span class="status-dot"></span> NAV vAPR ${navVaprPct().toFixed(1)}%`;
     }
 
     function renderMarketStrip() {
@@ -1111,8 +1120,7 @@
       else { set('statBalance',state.wallet?'0 sgxUSD':'—'); set('statBalanceUsd','— USD'); }
       // Headline: realized NAV-floor appreciation since genesis (dated, historical).
       set('statApy', `+${navGrowthPct().toFixed(1)}%`);
-      const poolApr = state.aprPct!=null ? `${state.aprStale?'~':''}${state.aprPct.toFixed(2)}%` : '—';
-      set('statApySub', `since ${NAV_GENESIS_LABEL} · Meteora pool fees ${poolApr}`);
+      set('statApySub', `since ${NAV_GENESIS_LABEL}`);
       if (state.aprTvl!=null&&state.aprTvl>0) { const s=state.aprStale?'~':''; set('statTvl',`${s}${fmtUsd(state.aprTvl)}`); set('statTvlSub',state.aprVol24h>0?`${fmtUsd(state.aprVol24h)} vol 24h`:'Pool TVL'); }
       else { set('statTvl','—'); set('statTvlSub','Loading…'); }
     }
