@@ -381,7 +381,7 @@
       </div>
     </div>
     <div class="nav-right">
-      <div class="nav-apy"><span class="status-dot"></span> APY —%</div>
+      <div class="nav-apy"><span class="status-dot"></span> NAV floor +—</div>
       <a href="https://github.com/GuthixFinance" target="_blank" rel="noopener" class="nav-icon-btn" title="GitHub">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
@@ -401,7 +401,7 @@
         <div class="sbar-value cyan" id="sbarNav">—</div>
       </div>
       <div class="sbar-cell">
-        <div class="sbar-label">Fee APR <span id="aprDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+        <div class="sbar-label">NAV floor <span id="aprDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
         <div class="sbar-value accent" id="sbarApr">—%</div>
       </div>
       <div class="sbar-cell" style="min-width:150px">
@@ -447,8 +447,8 @@
             <div class="vault-stat-sub" id="statBalanceUsd">— USD</div>
           </div>
           <div class="vault-stat">
-            <div class="vault-stat-label">Fee APR
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-bubble">TVL-weighted fee APR from Meteora's DLMM data. Fee-only — full blended yield also includes collateral yield from sUSDe and syrupUSDC.</span></span>
+            <div class="vault-stat-label">NAV floor growth
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-bubble">Realized appreciation of the modeled NAV floor since genesis (2026-06-22), which follows a +28%/yr compounding schedule. The floor is a sell-floor mechanism, not a promised return. Meteora pool fee APR is shown separately below.</span></span>
             </div>
             <div class="vault-stat-value accent" id="statApy">—%</div>
             <div class="vault-stat-sub" id="statApySub">Loading…</div>
@@ -577,14 +577,14 @@
           <div class="panel-body">
             <div class="nav-price-grid">
               <div class="npc">
-                <div class="npc-label">NAV Price <span id="navPriceDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+                <div class="npc-label">NAV Floor <span id="navPriceDot" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
                 <div class="npc-value cyan" id="npcNavPrice">—</div>
-                <div class="npc-sub">USDC per sgxUSD</div>
+                <div class="npc-sub">modeled sell floor · +28%/yr schedule</div>
               </div>
               <div class="npc">
-                <div class="npc-label">24h Change <span id="dsxDot2" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
-                <div class="npc-value" id="npcChg24">—</div>
-                <div class="npc-sub">vs yesterday</div>
+                <div class="npc-label">Market vs NAV <span id="dsxDot2" style="font-size:8px;color:var(--text3);transition:color 0.3s">●</span></div>
+                <div class="npc-value" id="npcMktVsNav">—</div>
+                <div class="npc-sub">live market price vs floor</div>
               </div>
               <div class="npc">
                 <div class="npc-label">Exchange Rate</div>
@@ -704,6 +704,14 @@
       NAV_REFRESH_MS:  30_000,
       APR_REFRESH_MS:  60_000,
       DSX_REFRESH_MS:  30_000,
+      // ── NAV floor model ──
+      // The protocol's modeled sell floor: base * (1 + APR)^(years since genesis). These are
+      // the exact constants price-oracle serves every keeper (see WHITEPAPER.md §1), replicated
+      // here because price-oracle is tailnet-only and this public page cannot reach it.
+      // It is a floor mechanism, not a promised return.
+      NAV_FLOOR_BASE:       1.0,
+      NAV_FLOOR_APR:        0.28,
+      NAV_FLOOR_GENESIS_MS: 1782086400000, // 2026-06-22 UTC
     };
 
     const TOKENS = {
@@ -758,6 +766,7 @@
     const state = {
       tab: 'deposit', depositToken: 'USDC', slippageBps: null,
       liveQuoteRate: null, navRate: null, navPrice: null,
+      navFloor: navFloorUsd(),
       navStale: false, navLastUpdated: null,
       aprPct: null, aprFee24h: null, aprTvl: null, aprVol24h: null,
       aprStale: false, aprLastUpdated: null,
@@ -774,6 +783,18 @@
     }
     function fmtBal(v, dp=4) { if (v==null) return '—'; return parseFloat(v).toLocaleString('en-US',{maximumFractionDigits:dp}); }
     function fmtUsd(n) { if (n==null||isNaN(n)) return '—'; if (n>=1e6) return `$${(n/1e6).toFixed(2)}M`; if (n>=1e3) return `$${(n/1e3).toFixed(1)}K`; return `$${n.toFixed(2)}`; }
+
+    // ── NAV FLOOR ──
+    // Deterministic — a pure function of time, identical to price-oracle's nav_floor_usd().
+    // No feed, so it is always available even before the first Jupiter quote lands.
+    function navFloorUsd(at = Date.now()) {
+      const yrs = Math.max(0, (at - CONFIG.NAV_FLOOR_GENESIS_MS) / (365.25 * 864e5));
+      return CONFIG.NAV_FLOOR_BASE * Math.pow(1 + CONFIG.NAV_FLOOR_APR, yrs);
+    }
+    // Realized appreciation of the floor since genesis — a historical, dated figure.
+    function navGrowthPct(at = Date.now()) { return (navFloorUsd(at) / CONFIG.NAV_FLOOR_BASE - 1) * 100; }
+    const NAV_GENESIS_LABEL = new Date(CONFIG.NAV_FLOOR_GENESIS_MS)
+      .toLocaleDateString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
     // ── NAV RATE ──
     async function fetchNavRate() {
@@ -796,13 +817,29 @@
     function renderNav() {
       const navEl=document.getElementById('navDisplay'), rateEl=document.getElementById('exchangeRate');
       const npcNav=document.getElementById('npcNavPrice'), npcRate=document.getElementById('npcRate');
+      const npcMkt=document.getElementById('npcMktVsNav');
+
+      // NAV floor is deterministic and always available — render it unconditionally.
+      const floor = state.navFloor = navFloorUsd();
+      if (navEl)  navEl.textContent  = `$${floor.toFixed(4)}`;
+      if (npcNav) npcNav.textContent = `$${floor.toFixed(4)}`;
+
+      // Market price (Jupiter quote) and its discount / premium to the floor.
+      const mkt = state.navPrice;
+      if (npcMkt) {
+        if (mkt != null) {
+          const d = (mkt / floor - 1) * 100;
+          npcMkt.textContent = `${d >= 0 ? '+' : ''}${d.toFixed(2)}%`;
+          npcMkt.style.color = d >= 0 ? 'var(--accent)' : 'var(--gold)';
+        } else { npcMkt.textContent = '—'; npcMkt.style.color = ''; }
+      }
+
       if (!state.navPrice) {
-        [navEl,rateEl,npcNav,npcRate].forEach(e=>{ if(e) e.textContent='—'; });
-        if (rateEl) rateEl.textContent='Pre-launch'; return;
+        if (npcRate) npcRate.textContent = '—';
+        if (rateEl)  rateEl.textContent  = 'Pre-launch';
+        return;
       }
       const s=state.navStale?'~':'';
-      if (navEl)   navEl.textContent  = `${s}$${state.navPrice.toFixed(4)}`;
-      if (npcNav)  npcNav.textContent = `${s}$${state.navPrice.toFixed(4)}`;
       if (npcRate) npcRate.textContent = `${s}${state.navRate.toFixed(4)} USD`;
       const tok=TOKENS[state.depositToken];
       if (state.tab==='withdraw') { if (rateEl) rateEl.textContent=`1 sgxUSD = ${s}$${state.navPrice.toFixed(4)}`; return; }
@@ -947,9 +984,17 @@
           totTvl += tvl; totVol += vol; totFee += vol * fee;
         });
 
-        const best=pairs.reduce((a,b)=>(parseFloat(b.liquidity?.usd??0)>parseFloat(a.liquidity?.usd??0))?b:a);
-        state.dsx=best; state.dsxStale=false; state.dsxLastUpdated=Date.now();
-        if (state.navPrice==null&&best.priceUsd) { state.navPrice=parseFloat(best.priceUsd); state.navRate=state.navPrice>0?1/state.navPrice:null; }
+        // Only ever describe one of the protocol's OWN venues. DexScreener also indexes a
+        // stray, unmanaged sgxUSD/SOL pool whose ~$200 of liquidity would otherwise win this
+        // reduce and drive the whole Market Data panel off a pool we don't run.
+        const managed = new Set(Object.keys(POOLS).map(a=>a.toLowerCase()));
+        const candidates = pairs.filter(p => p.pairAddress && managed.has(p.pairAddress.toLowerCase()));
+        const best=(candidates.length?candidates:[]).reduce(
+          (a,b)=>(parseFloat(b.liquidity?.usd??0)>parseFloat(a?.liquidity?.usd??0))?b:a, null);
+        if (best) {
+          state.dsx=best; state.dsxStale=false; state.dsxLastUpdated=Date.now();
+          if (state.navPrice==null&&best.priceUsd) { state.navPrice=parseFloat(best.priceUsd); state.navRate=state.navPrice>0?1/state.navPrice:null; }
+        }
         setDot('dsxDot','live'); setDot('dsxDot2','live');
 
         // Also fetch Manifest CLOB market (may not be indexed yet)
@@ -976,7 +1021,15 @@
         if (!pair) throw new Error('No pair data');
         const tvl = parseFloat(pair.liquidity?.usd ?? 0);
         const vol = parseFloat(pair.volume?.h24 ?? 0);
-        state.poolData[CONFIG.MANIFEST_MARKET] = { tvl, vol, dex: 'Manifest CLOB', fee: 0, dsxUrl: pair.url };
+        // fetchPoolTVL already sets Manifest TVL from the on-chain vault balance — that is the
+        // authoritative figure. Only take DexScreener's TVL if it actually has one, and never
+        // let it null out what the RPC path populated. Volume / link come from DexScreener.
+        const prior = state.poolData[CONFIG.MANIFEST_MARKET] || {};
+        state.poolData[CONFIG.MANIFEST_MARKET] = {
+          tvl: tvl > 0 ? tvl : (prior.tvl ?? null),
+          vol: vol > 0 ? vol : (prior.vol ?? null),
+          dex: 'Manifest CLOB', fee: 0, dsxUrl: pair.url,
+        };
         // Manifest is 0% fee — add volume to totals but 0 to fee APR
         // Update APR totals to include Manifest TVL (more TVL, same fees = conservative APR)
         const newTvl = prevTvl + tvl;
@@ -988,30 +1041,33 @@
         }
         renderPoolCards(); renderVaultStats(); renderStatusBar();
       } catch(err) {
-        console.info('[GUTHIX] Manifest market not indexed on DexScreener yet — showing card without live data');
-        state.poolData[CONFIG.MANIFEST_MARKET] = { tvl: null, vol: null, dex: 'Manifest CLOB', fee: 0, dsxUrl: null };
+        console.info('[GUTHIX] Manifest market not indexed on DexScreener yet — using on-chain vault balance');
+        // Do NOT clobber the TVL fetchPoolTVL got from the vault balance. Only seed a
+        // placeholder if nothing has populated this card yet.
+        const prior = state.poolData[CONFIG.MANIFEST_MARKET];
+        if (!prior || prior.tvl == null) {
+          state.poolData[CONFIG.MANIFEST_MARKET] = { ...(prior||{}), tvl: prior?.tvl ?? null, vol: prior?.vol ?? null, dex: 'Manifest CLOB', fee: 0, dsxUrl: null };
+        }
         renderPoolCards();
       }
     }
 
     function renderStatusBar() {
       const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-      set('sbarNav',   state.navPrice!=null ? `$${state.navPrice.toFixed(4)}`     : '—');
-      set('sbarApr',   state.aprPct!=null   ? `${state.aprPct.toFixed(2)}%`       : '—%');
+      set('sbarNav',   `$${(state.navFloor ?? navFloorUsd()).toFixed(4)}`);
+      set('sbarApr',   `+${navGrowthPct().toFixed(1)}%`);
       set('sbarTvl',   state.aprTvl!=null   ? fmtUsd(state.aprTvl)                : '—');
       set('sbarVol',   state.aprVol24h!=null? fmtUsd(state.aprVol24h)             : '—');
       const bal=state.balances[CONFIG.SGXUSD_MINT];
       set('sbarBalance', bal!=null?`${fmtBal(bal,2)} sgxUSD`:(state.wallet?'0 sgxUSD':'—'));
       setDot('navBarDot', state.navStale?'stale':(state.navPrice?'live':'loading'));
       const apy=document.querySelector('.nav-apy');
-      if (apy&&state.aprPct!=null) apy.innerHTML=`<span class="status-dot"></span> Fee APR ${state.aprPct.toFixed(2)}%`;
+      if (apy) apy.innerHTML=`<span class="status-dot"></span> NAV floor +${navGrowthPct().toFixed(1)}% since ${NAV_GENESIS_LABEL}`;
     }
 
     function renderMarketStrip() {
       const strip=document.getElementById('marketStrip'); if (!strip) return;
       const d=state.dsx;
-      const npcChg=document.getElementById('npcChg24');
-      if (npcChg&&d) { const c=d.priceChange?.h24??null; if (c!=null) { npcChg.textContent=`${c>=0?'+':''}${c.toFixed(2)}%`; npcChg.style.color=c>=0?'var(--accent)':'var(--warn)'; } }
       if (!d) { strip.innerHTML=`<div class="mstrip-cell"><span class="mstrip-label">Price</span><span class="mstrip-val">—</span></div><div class="mstrip-cell"><span class="mstrip-label">24h Δ</span><span class="mstrip-val">—</span></div><div class="mstrip-cell"><span class="mstrip-label">Vol 24h</span><span class="mstrip-val">—</span></div><div class="mstrip-cell"><span class="mstrip-label">Liquidity</span><span class="mstrip-val">—</span></div><div class="mstrip-cell"><span class="mstrip-label">Txns 24h</span><span class="mstrip-val">—</span></div>`; return; }
       const price=d.priceUsd?`$${parseFloat(d.priceUsd).toFixed(4)}`:'—';
       const chg=d.priceChange?.h24??null;
@@ -1053,8 +1109,10 @@
       const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
       if (bal!=null) { const b=parseFloat(bal); set('statBalance',`${fmtBal(bal,2)} sgxUSD`); set('statBalanceUsd',usd!=null?`≈ $${(b*usd).toFixed(2)}`:'— USD'); }
       else { set('statBalance',state.wallet?'0 sgxUSD':'—'); set('statBalanceUsd','— USD'); }
-      if (state.aprPct!=null) { const s=state.aprStale?'~':''; set('statApy',`${s}${state.aprPct.toFixed(2)}%`); set('statApySub',state.aprFee24h>0?`${fmtUsd(state.aprFee24h)} fees 24h`:'Fee APR'); }
-      else { set('statApy','—%'); set('statApySub','Loading…'); }
+      // Headline: realized NAV-floor appreciation since genesis (dated, historical).
+      set('statApy', `+${navGrowthPct().toFixed(1)}%`);
+      const poolApr = state.aprPct!=null ? `${state.aprStale?'~':''}${state.aprPct.toFixed(2)}%` : '—';
+      set('statApySub', `since ${NAV_GENESIS_LABEL} · Meteora pool fees ${poolApr}`);
       if (state.aprTvl!=null&&state.aprTvl>0) { const s=state.aprStale?'~':''; set('statTvl',`${s}${fmtUsd(state.aprTvl)}`); set('statTvlSub',state.aprVol24h>0?`${fmtUsd(state.aprVol24h)} vol 24h`:'Pool TVL'); }
       else { set('statTvl','—'); set('statTvlSub','Loading…'); }
     }
